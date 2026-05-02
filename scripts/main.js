@@ -74,78 +74,54 @@
   }
 
   // ─────────────────────────────────────────────
-  // 3. REPRODUCTOR DE MÚSICA · YouTube IFrame API
+  // 3. REPRODUCTOR DE MÚSICA · <audio> nativo, MP3 self-hosted
   // ─────────────────────────────────────────────
 
   const musicPlayer = document.getElementById('music-player');
   const musicToggle = document.getElementById('music-toggle');
-  let ytPlayer = null;
-  let ytReady = false;
-  let pendingPlay = false;
+  const bgAudio = document.getElementById('bg-audio');
 
-  // Función de inicialización
-  function initYTPlayer() {
-    if (ytPlayer) return; // Evitar doble inicialización
+  if (bgAudio) {
+    bgAudio.volume = 0.6;
 
-    ytPlayer = new YT.Player('yt-player', {
-      videoId: 'X4JjW_jZ5yU',
-      playerVars: {
-        autoplay: 0,
-        loop: 1,
-        playlist: 'X4JjW_jZ5yU',
-        controls: 0,
-        disablekb: 1,
-        fs: 0,
-        modestbranding: 1,
-        rel: 0,
-        showinfo: 0,
-        iv_load_policy: 3
-      },
-      events: {
-        onReady: (e) => {
-          console.log('[Música] Player listo');
-          ytReady = true;
-          e.target.setVolume(50);
-          if (pendingPlay) {
-            console.log('[Música] Ejecutando reproducción pendiente');
-            e.target.playVideo();
-            pendingPlay = false;
-          }
-        },
-        onStateChange: (e) => {
-          if (!musicPlayer) return;
-          const isPlaying = e.data === YT.PlayerState.PLAYING;
-          musicPlayer.dataset.state = isPlaying ? 'playing' : 'paused';
-          musicToggle.setAttribute('aria-label', isPlaying ? 'Pausar música' : 'Reproducir música');
-        },
-        onError: (e) => {
-          console.error('[Música] Error en el reproductor de YouTube:', e.data);
-        }
-      },
+    bgAudio.addEventListener('playing', () => {
+      if (!musicPlayer) return;
+      musicPlayer.dataset.state = 'playing';
+      musicToggle.setAttribute('aria-label', 'Pausar música');
+    });
+
+    bgAudio.addEventListener('pause', () => {
+      if (!musicPlayer) return;
+      musicPlayer.dataset.state = 'paused';
+      musicToggle.setAttribute('aria-label', 'Reproducir música');
+    });
+
+    bgAudio.addEventListener('waiting', () => {
+      if (!musicPlayer) return;
+      musicPlayer.dataset.state = 'loading';
+    });
+
+    bgAudio.addEventListener('error', () => {
+      console.error('[Música] No se pudo cargar el MP3:', bgAudio.error);
+      if (musicPlayer) musicPlayer.dataset.state = 'error';
     });
   }
 
-  // Definir globalmente para la API
-  window.onYouTubeIframeAPIReady = initYTPlayer;
-
-  // Por si la API carga ANTES de que este script se ejecute
-  if (window.YT && window.YT.Player) {
-    initYTPlayer();
+  function tryPlayAudio() {
+    if (!bgAudio) return Promise.reject(new Error('no audio element'));
+    const p = bgAudio.play();
+    return p && typeof p.then === 'function' ? p : Promise.resolve();
   }
 
-  if (musicToggle) {
+  if (musicToggle && bgAudio) {
     musicToggle.addEventListener('click', () => {
-      if (!ytReady || !ytPlayer) {
-        pendingPlay = true;
-        musicPlayer.dataset.state = 'loading';
-        return;
-      }
-
-      const state = ytPlayer.getPlayerState();
-      if (state === YT.PlayerState.PLAYING) {
-        ytPlayer.pauseVideo();
+      if (bgAudio.paused) {
+        tryPlayAudio().catch((err) => {
+          console.warn('[Música] Reproducción bloqueada:', err);
+          musicPlayer.dataset.state = 'paused';
+        });
       } else {
-        ytPlayer.playVideo();
+        bgAudio.pause();
       }
     });
   }
@@ -159,12 +135,12 @@
 
   if (entryOverlay && btnOpenInvite) {
     btnOpenInvite.addEventListener('click', () => {
-      // 1. Intentar reproducir música
-      if (ytReady) {
-        ytPlayer.playVideo();
-      } else {
-        pendingPlay = true;
-      }
+      // 1. Intentar reproducir música DENTRO del gesto del usuario.
+      //    Con <audio> nativo el gesto del click cuenta como permiso de autoplay
+      //    en todos los navegadores actuales (Chrome, Safari iOS, Firefox).
+      tryPlayAudio().catch((err) => {
+        console.warn('[Música] Reproducción bloqueada en entrada:', err);
+      });
 
       // 2. Ocultar overlay
       entryOverlay.classList.add('is-hidden');
