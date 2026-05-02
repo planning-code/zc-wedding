@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es-SV">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="Karlita Cárcamo & Edgardo Zamora · Domingo 16 de agosto de 2026 · Hilton San Salvador">
+  <meta name="robots" content="noindex, nofollow">
+
+  <meta property="og:title" content="Karlita & Edgardo · 16.08.2026">
+  <meta property="og:description" content="Nuestra boda. Hilton San Salvador.">
+  <meta property="og:image" content="https://zcwedding.com/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://zcwedding.com">
+  <meta property="og:locale" content="es_SV">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://zcwedding.com/assets/og.png">
+
+  <title>Karlita & Edgardo · 16 · 08 · 2026</title>
+
+  <link rel="icon" type="image/png" href="/assets/monograma.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap">
+
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+
+  <!-- ─────────────────────────────────────────────
+       Reproductor de música de fondo
+       Cuelga fija en la esquina; el usuario decide cuándo activar.
+       (Las políticas de los navegadores no permiten autoplay con sonido.)
+       ───────────────────────────────────────────── -->
+  <div class="music-player" id="music-player" data-state="paused">
+    <button class="music-player__btn" id="music-toggle" type="button" aria-label="Reproducir música de fondo">
+      <span class="music-player__icon" aria-hidden="true">
+        <svg class="icon-play" width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M3 1.5v11l9-5.5z"/></svg>
+        <svg class="icon-pause" width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M3 1.5h3v11H3zm5 0h3v11H8z"/></svg>
+      </span>
+      <span class="music-player__meta">
+        <span class="music-player__track">Volví a Nacer</span>
+        <span class="music-player__artist">Carlos Vives</span>
+      </span>
+    </button>
+    <audio id="bg-music" src="/assets/volvi-a-nacer.mp3" loop preload="none"></audio>
+  </div>
+
+  <!-- ─────────────────────────────────────────────
+       1. HERO · Tarjeta de invitación
+       ───────────────────────────────────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero__bg" aria-hidden="true"></div>
+    <div class="hero__overlay" aria-hidden="true"></div>
+
+    <div class="hero__inner">
+      <div class="monogram">
+        <img src="/assets/monograma.png" alt="Karlita & Edgardo Monograma" class="monogram__img">
+      </div>
+
+      <p class="hero__pretext">Tenemos el honor de invitarte a nuestra boda</p>
+
+
+
+      <div class="hero__date" aria-label="16 de agosto de 2026">
+        <span>16</span>
+        <span class="hero__dot" aria-hidden="true"></span>
+        <span>AGOSTO</span>
+        <span class="hero__dot" aria-hidden="true"></span>
+        <span>2026</span>
+      </div>
+
+      <p class="hero__venue">Hilton San Salvador · 4:00 PM</p>
+    </div>
+
+    <div class="hero__scroll" aria-hidden="true">
+      <span class="hero__scroll-line"></span>
+      <span class="hero__scroll-text">Desliza</span>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       2. PADRES · Bendición
+       ───────────────────────────────────────────── -->
+  <section class="parents" id="padres">
+    <p class="kicker">Con la bendición de nuestros padres</p>
+
+    <div class="parents__grid">
+      <div class="parents__col">
+        <p class="parents__role">Padres de la novia</p>
+        <p class="parents__name">Carlos Rubén Cárcamo</p>
+        <p class="parents__name">Graciela Margarita de Cárcamo <span class="parents__cross" aria-label="finada">†</span></p>
+      </div>
+
+      <div class="parents__divider" aria-hidden="true"></div>
+
+      <div class="parents__col">
+        <p class="parents__role">Padres del novio</p>
+        <p class="parents__name">Edgard Armando Zamora</p>
+        <p class="parents__name">Julia del Carmen de Zamora</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       3. NOMBRES · Tipografía editorial gigante
+       ───────────────────────────────────────────── -->
+  <!-- ─────────────────────────────────────────────
+       3. NOMBRES · Revelación al scroll
+       ───────────────────────────────────────────── -->
+  <section class="names-display" id="nombres">
+    <!-- Foto con parallax que revela las caras al scrollear -->
+    <div class="names-display__photo-wrap" aria-hidden="true">
+      <div class="names-display__photo" id="names-photo"></div>
+    </div>
+
+    <!-- Overlay gradiente -->
+    <div class="names-display__overlay" aria-hidden="true"></div>
+
+    <!-- Nombres horizontales siempre visibles -->
+    <div class="names-display__content">
+      <h2 class="names-display__type">
+        <span class="names-display__line">KARLITA</span>
+        <span class="names-display__amp" aria-hidden="true">&</span>
+        <span class="names-display__line">EDGARDO</span>
+      </h2>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       4. CUENTA REGRESIVA
+       ───────────────────────────────────────────── -->
+  <section class="countdown" id="cuenta-regresiva">
+    <div class="countdown__bg" aria-hidden="true"></div>
+    <div class="countdown__overlay" aria-hidden="true"></div>
+
+    <div class="countdown__inner">
+      <p class="kicker kicker--light">Save the date</p>
+      <h2 class="countdown__date">Domingo 16 de agosto de 2026</h2>
+      <p class="countdown__time">4:00 PM</p>
+
+      <div class="timer" id="timer" aria-live="polite">
+        <div class="timer__unit">
+          <span class="timer__num" data-unit="days">—</span>
+          <span class="timer__label">Días</span>
+        </div>
+        <div class="timer__sep" aria-hidden="true"></div>
+        <div class="timer__unit">
+          <span class="timer__num" data-unit="hours">—</span>
+          <span class="timer__label">Horas</span>
+        </div>
+        <div class="timer__sep" aria-hidden="true"></div>
+        <div class="timer__unit">
+          <span class="timer__num" data-unit="minutes">—</span>
+          <span class="timer__label">Minutos</span>
+        </div>
+        <div class="timer__sep" aria-hidden="true"></div>
+        <div class="timer__unit">
+          <span class="timer__num" data-unit="seconds">—</span>
+          <span class="timer__label">Segundos</span>
+        </div>
+      </div>
+
+      <div class="countdown__actions">
+        <a class="btn btn--ghost-light" href="#" id="btn-google-cal" target="_blank" rel="noopener">Agregar a Google Calendar</a>
+        <a class="btn btn--ghost-light" href="/assets/invite.ics" download>Apple · Outlook (.ics)</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       5. STORY · Tres capítulos visuales
+       ───────────────────────────────────────────── -->
+  <section class="story" id="historia">
+    <article class="story__chapter">
+      <figure class="story__figure">
+        <img src="/photos/story-1.jpg" alt="" loading="lazy">
+      </figure>
+      <div class="story__copy">
+        <p class="kicker">Capítulo I</p>
+        <h3 class="story__heading">Un sí en cada sonrisa</h3>
+        <p class="story__body">Hay días que parecen comunes hasta que ya no lo son. El nuestro fue uno de esos.</p>
+      </div>
+    </article>
+
+    <article class="story__chapter story__chapter--reverse">
+      <figure class="story__figure">
+        <img src="/photos/story-2.jpg" alt="" loading="lazy">
+      </figure>
+      <div class="story__copy">
+        <p class="kicker">Capítulo II</p>
+        <h3 class="story__heading">La complicidad</h3>
+        <p class="story__body">Aprendimos que el amor también es una broma compartida, una mirada que dice todo sin hablar.</p>
+      </div>
+    </article>
+
+    <article class="story__chapter">
+      <figure class="story__figure">
+        <img src="/photos/story-3.jpg" alt="" loading="lazy">
+      </figure>
+      <div class="story__copy">
+        <p class="kicker">Capítulo III</p>
+        <h3 class="story__heading">Y luego el siempre</h3>
+        <p class="story__body">Decidimos que esta historia no termine — solo cambie de capítulo. El próximo se escribe el 16 de agosto.</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       6. DETALLES · Pareo de close-ups
+       ───────────────────────────────────────────── -->
+  <section class="details" aria-label="Detalles">
+    <figure class="details__figure">
+      <img src="/photos/detail-1.jpg" alt="" loading="lazy">
+    </figure>
+    <figure class="details__figure">
+      <img src="/photos/detail-2.jpg" alt="" loading="lazy">
+    </figure>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       7. ITINERARIO · El día
+       ───────────────────────────────────────────── -->
+  <section class="agenda" id="itinerario">
+    <header class="section__head">
+      <p class="kicker">El día</p>
+      <h2 class="section__title">Itinerario</h2>
+      <p class="section__sub">Programa tentativo. Lo actualizamos en las próximas semanas.</p>
+    </header>
+
+    <ol class="agenda__list">
+      <li class="agenda__item">
+        <span class="agenda__time">3:30 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Recepción de invitados</h4>
+          <p>Terraza Mesoamérica</p>
+        </div>
+      </li>
+      <li class="agenda__item agenda__item--accent">
+        <span class="agenda__time">4:00 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Ceremonia civil</h4>
+          <p>Terraza Mesoamérica</p>
+        </div>
+      </li>
+      <li class="agenda__item">
+        <span class="agenda__time">5:30 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Cocktail</h4>
+          <p>Antesala del Salón Mesoamérica</p>
+        </div>
+      </li>
+      <li class="agenda__item">
+        <span class="agenda__time">7:00 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Recepción y cena</h4>
+          <p>Salón Mesoamérica 2 y 3</p>
+        </div>
+      </li>
+      <li class="agenda__item">
+        <span class="agenda__time">8:30 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Primer baile</h4>
+        </div>
+      </li>
+      <li class="agenda__item">
+        <span class="agenda__time">9:00 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Pista abierta</h4>
+        </div>
+      </li>
+      <li class="agenda__item">
+        <span class="agenda__time">11:00 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Pastel y brindis</h4>
+        </div>
+      </li>
+      <li class="agenda__item">
+        <span class="agenda__time">1:00 <em>AM</em></span>
+        <div class="agenda__body">
+          <h4>Cierre</h4>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       8. LUGAR · Hilton San Salvador
+       ───────────────────────────────────────────── -->
+  <section class="venue" id="lugar">
+    <div class="venue__media">
+      <img src="/photos/venue.jpg" alt="" loading="lazy">
+    </div>
+
+    <div class="venue__copy">
+      <p class="kicker">El lugar</p>
+      <h2 class="section__title">Hilton San Salvador</h2>
+      <p class="venue__address">
+        Av. Las Magnolias y Bvd. del Hipódromo<br>
+        Colonia San Benito · San Salvador, El Salvador
+      </p>
+
+      <dl class="venue__detail">
+        <dt>Ceremonia</dt>
+        <dd>Terraza Mesoamérica</dd>
+      </dl>
+      <dl class="venue__detail">
+        <dt>Recepción</dt>
+        <dd>Salón Mesoamérica 2 y 3</dd>
+      </dl>
+
+      <a class="btn btn--ghost" href="https://www.google.com/maps/dir/?api=1&destination=Hilton+San+Salvador+El+Salvador" target="_blank" rel="noopener">Cómo llegar</a>
+    </div>
+
+    <div class="venue__map" id="venue-map">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0!2d-89.23270!3d13.70279!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6330b1b4f4f0c1%3A0x7c5d39e4e5c5e5c5!2sHilton%20San%20Salvador!5e0!3m2!1ses!2ssv!4v1620000000000!5m2!1ses!2ssv"
+        width="100%"
+        height="100%"
+        style="border:0; filter: grayscale(1) contrast(1.05); min-height: 360px;"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen
+        title="Hilton San Salvador en Google Maps"
+        aria-label="Mapa de ubicación del Hilton San Salvador"
+      ></iframe>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       9. DRESS CODE · Formal o Noche Formal
+       ───────────────────────────────────────────── -->
+  <section class="dress" id="dress-code">
+    <div class="dress__media">
+      <img src="/photos/dress-code.jpg" alt="" loading="lazy">
+    </div>
+
+    <div class="dress__copy">
+      <p class="kicker">Etiqueta</p>
+      <h2 class="section__title">Formal</h2>
+      <p class="dress__lead">Queremos que todos se vean y se sientan increíbles esa noche.</p>
+
+      <ul class="dress__rules">
+        <li class="dress__rule">
+          <span class="dress__rule-label">Ellas</span>
+          <span class="dress__rule-text">Vestido de noche elegante o conjunto de dos piezas. Colores oscuros o metálicos.</span>
+        </li>
+        <li class="dress__rule">
+          <span class="dress__rule-label">Ellos</span>
+          <span class="dress__rule-text">Traje oscuro (negro, azul marino o gris marengo), camisa clara, corbata y zapatos de vestir.</span>
+        </li>
+      </ul>
+
+      <p class="dress__note">Por favor evita blanco, marfil y beige claro — esos tonos los reservamos para la novia.</p>
+
+      <a class="btn btn--ghost" href="https://pinterest.com" id="btn-pinterest" target="_blank" rel="noopener">Ver inspiración en Pinterest →</a>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       10. MESA DE REGALOS · Lluvia de sobres
+       ───────────────────────────────────────────── -->
+  <section class="gift">
+    <div class="gift__inner">
+      <p class="kicker">Mesa de regalos</p>
+      <h2 class="section__title">Lluvia de sobres</h2>
+      <p>Tu presencia es el mejor regalo que podríamos pedir. Si deseas acompañarnos con un detalle, agradecemos de corazón tu gesto en regalo de sobre el día del evento.</p>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       11. SOLO ADULTOS · Nota
+       ───────────────────────────────────────────── -->
+  <aside class="note" aria-label="Nota">
+    <p class="note__text">Una noche pensada para adultos. Gracias por entenderlo.</p>
+  </aside>
+
+  <!-- ─────────────────────────────────────────────
+       12. RSVP · Confirmación de asistencia
+       ───────────────────────────────────────────── -->
+  <section class="rsvp" id="rsvp">
+    <header class="section__head">
+      <p class="kicker">Confirmar asistencia</p>
+      <h2 class="section__title">¿Nos acompañas?</h2>
+      <p class="section__sub">Por favor confirma antes del <strong>19 de julio de 2026</strong>.</p>
+    </header>
+
+    <form class="rsvp__form" id="rsvp-form" novalidate>
+      <!-- Selector de asistencia -->
+      <div class="form-group">
+        <label>¿Podrás acompañarnos?</label>
+        <div class="attendance-toggle">
+          <label class="attendance-option">
+            <input type="radio" name="attendance" value="yes" required>
+            <span class="attendance-box">Asistire</span>
+          </label>
+          <label class="attendance-option">
+            <input type="radio" name="attendance" value="no" required>
+            <span class="attendance-box">No podre asistir</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Campos condicionales para el "SÍ" -->
+      <div id="rsvp-yes-fields" class="rsvp-conditional" style="display: none;">
+        <p class="rsvp__thanks">¡Qué alegría que nos acompañes! Por favor llena tus datos:</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="first-name">Nombre</label>
+            <input type="text" id="first-name" name="first-name" placeholder="Tu nombre">
+          </div>
+          <div class="form-group">
+            <label for="last-name">Apellido</label>
+            <input type="text" id="last-name" name="last-name" placeholder="Tu apellido">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" name="email" placeholder="tucorreo@ejemplo.com" autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Número de teléfono</label>
+          <input type="tel" id="phone" name="phone" placeholder="7000-0000">
+        </div>
+
+        <div class="form-group">
+          <label for="yes-message">Puedes felicitar a los novios acá</label>
+          <textarea id="yes-message" name="yes-message" rows="3" placeholder="Escribe tu mensaje..."></textarea>
+        </div>
+      </div>
+
+      <!-- Campos condicionales para el "NO" -->
+      <div id="rsvp-no-fields" class="rsvp-conditional" style="display: none;">
+        <p class="rsvp__thanks">Te extrañaremos, pero gracias por informarnos. Déjanos tus datos:</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="no-first-name">Nombre</label>
+            <input type="text" id="no-first-name" name="no-first-name" placeholder="Tu nombre">
+          </div>
+          <div class="form-group">
+            <label for="no-last-name">Apellido</label>
+            <input type="text" id="no-last-name" name="no-last-name" placeholder="Tu apellido">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="no-message">Puedes felicitar a los novios acá</label>
+          <textarea id="no-message" name="no-message" rows="3" placeholder="Escribe tu mensaje..."></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn--solid" id="btn-rsvp-submit">Enviar respuesta</button>
+
+      <p class="form-mock-note">Tu confirmación ayuda a Karlita y Edgardo a planificar mejor los detalles.</p>
+    </form>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       13. SUGERENCIA DE CANCIÓN
+       ───────────────────────────────────────────── -->
+  <section class="music-suggestion" id="musica">
+    <div class="music-suggestion__media">
+      <img src="/photos/music.jpg" alt="" loading="lazy">
+    </div>
+
+    <div class="music-suggestion__copy">
+      <p class="kicker">Tu canción para la fiesta</p>
+      <h2 class="section__title">Sugiere una canción</h2>
+      <p>Cuéntanos qué quieres bailar esa noche. Karlita y Edgardo revisan cada sugerencia antes de agregarla al playlist.</p>
+
+      <form class="music-suggestion__form" id="song-form" novalidate>
+        <div class="form-group">
+          <label for="song-search">Buscar en Spotify</label>
+          <input type="text" id="song-search" name="song-search" placeholder="Nombre de la canción o artista">
+        </div>
+        <button type="submit" class="btn btn--ghost">Buscar</button>
+      </form>
+
+      <p class="form-mock-note">Mock — la búsqueda en Spotify se conecta en la fase 16.</p>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       14. GALERÍA · Adelanto
+       ───────────────────────────────────────────── -->
+  <section class="gallery-teaser">
+    <div class="gallery-teaser__media">
+      <img src="/photos/gallery-teaser.jpg" alt="" loading="lazy">
+    </div>
+
+    <div class="gallery-teaser__copy">
+      <p class="kicker">Galería</p>
+      <h2 class="section__title">Tus fotos del día</h2>
+      <p>Después de la boda podrás subir tus fotos y verlas en una galería privada. Karlita y Edgardo verán todas las que tomaron sus invitados.</p>
+      <a class="btn btn--ghost" href="/gallery.html">Abrir galería</a>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────
+       15. CIERRE · Nos vemos
+       ───────────────────────────────────────────── -->
+  <section class="closing">
+    <div class="closing__bg" aria-hidden="true"></div>
+    <div class="closing__overlay" aria-hidden="true"></div>
+
+    <div class="closing__inner">
+      <p class="kicker kicker--light">Nos vemos en nuestra boda</p>
+      
+      <div class="closing__logo-container">
+        <img src="/assets/monograma.png" alt="Karlita & Edgardo Logo" class="closing__logo">
+      </div>
+
+      <div class="closing__footer-info">
+        <p class="footer__date">16 · 08 · 2026</p>
+        <p class="footer__credit">San Salvador, El Salvador</p>
+      </div>
+    </div>
+  </section>
+
+  <script src="/scripts/main.js" defer></script>
+</body>
+</html>

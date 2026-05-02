@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es-SV">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin · Karlita & Edgardo · 16.08.2026</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0A'/%3E%3Ctext x='16' y='22' font-family='serif' font-size='16' font-style='italic' fill='%23B89758' text-anchor='middle'%3EK%26E%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap">
+
+  <link rel="stylesheet" href="/styles/admin.css">
+</head>
+<body>
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <img src="/assets/monograma.png" alt="Logo K&E" class="sidebar__logo">
+      <span class="sidebar__label">Panel Admin</span>
+    </div>
+
+    <nav class="sidebar__nav" aria-label="Navegación principal">
+      <a class="sidebar__link sidebar__link--active" href="#invitados" data-section="invitados" id="nav-invitados">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Invitados
+      </a>
+      <a class="sidebar__link" href="#detalles" data-section="detalles" id="nav-detalles">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Detalles del evento
+      </a>
+      <a class="sidebar__link" href="#rsvp" data-section="rsvp" id="nav-rsvp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Confirmaciones
+      </a>
+      <a class="sidebar__link" href="#musica" data-section="musica" id="nav-musica">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        Música
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <a href="/" class="sidebar__back">← Ver sitio</a>
+      <button class="sidebar__logout" id="btn-logout" type="button">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <main class="admin-main" id="admin-main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="topbar__menu" id="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <h1 class="topbar__title" id="page-title">Invitados</h1>
+      <div class="topbar__meta">
+        <span class="badge badge--gold" id="badge-role">Super Admin</span>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════════════════
+         SECCIÓN: INVITADOS
+    ══════════════════════════════════════════ -->
+    <section class="admin-section" id="section-invitados" data-section="invitados">
+
+      <!-- KPI strip -->
+      <div class="kpi-strip">
+        <div class="kpi">
+          <span class="kpi__num" id="kpi-total">0</span>
+          <span class="kpi__label">Total invitados</span>
+        </div>
+        <div class="kpi kpi--gold">
+          <span class="kpi__num" id="kpi-confirmed">0</span>
+          <span class="kpi__label">Confirmados</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__num" id="kpi-pending">0</span>
+          <span class="kpi__label">Pendientes</span>
+        </div>
+        <div class="kpi kpi--muted">
+          <span class="kpi__num" id="kpi-declined">0</span>
+          <span class="kpi__label">Declinaron</span>
+        </div>
+        <div class="kpi kpi--gold">
+          <span class="kpi__num" id="kpi-seats">0</span>
+          <span class="kpi__label">Asientos totales</span>
+        </div>
+      </div>
+
+      <!-- Barra de herramientas -->
+      <div class="toolbar">
+        <div class="toolbar__search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="search" id="search-guests" placeholder="Buscar por nombre o correo…" aria-label="Buscar invitados">
+        </div>
+        <div class="toolbar__actions">
+          <button class="btn btn--ghost btn--sm" id="btn-export-csv" type="button">Exportar CSV</button>
+          <button class="btn btn--gold btn--sm" id="btn-add-guest" type="button">+ Agregar invitado</button>
+        </div>
+      </div>
+
+      <!-- Tabla de invitados -->
+      <div class="table-wrap">
+        <table class="data-table" id="guests-table" aria-label="Lista de invitados">
+          <thead>
+            <tr>
+              <th scope="col">Nombre</th>
+              <th scope="col">Correo</th>
+              <th scope="col">Teléfono</th>
+              <th scope="col">Acompañantes</th>
+              <th scope="col">Estado RSVP</th>
+              <th scope="col">Enviado</th>
+              <th scope="col" class="col-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="guests-tbody">
+            <!-- Se pobla con JS -->
+          </tbody>
+        </table>
+        <div class="table-empty" id="guests-empty" hidden>
+          <p>No hay invitados todavía. Agrega el primero con el botón de arriba.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECCIÓN: DETALLES DEL EVENTO
+    ══════════════════════════════════════════ -->
+    <section class="admin-section" id="section-detalles" data-section="detalles" hidden>
+
+      <div class="admin-cards">
+
+        <!-- Información general -->
+        <div class="admin-card">
+          <h2 class="admin-card__title">Información general</h2>
+          <form class="settings-form" id="form-general" novalidate>
+            <div class="field-group">
+              <label for="set-fecha">Fecha del evento</label>
+              <input type="date" id="set-fecha" value="2026-08-16">
+            </div>
+            <div class="field-group">
+              <label for="set-hora">Hora</label>
+              <input type="time" id="set-hora" value="16:00">
+            </div>
+            <div class="field-group">
+              <label for="set-venue-ceremonia">Lugar de ceremonia</label>
+              <input type="text" id="set-venue-ceremonia" value="Terraza Mesoamérica · Hilton San Salvador">
+            </div>
+            <div class="field-group">
+              <label for="set-venue-recepcion">Lugar de recepción</label>
+              <input type="text" id="set-venue-recepcion" value="Salón Mesoamérica 2 y 3 · Hilton San Salvador">
+            </div>
+            <div class="field-group">
+              <label for="set-dresscode">Dress code</label>
+              <input type="text" id="set-dresscode" value="Black Tie · Formal riguroso">
+            </div>
+            <div class="field-group">
+              <label for="set-pinterest">Link de Pinterest</label>
+              <input type="url" id="set-pinterest" placeholder="https://pinterest.com/...">
+            </div>
+            <div class="field-group">
+              <label for="set-rsvp-deadline">Fecha límite RSVP</label>
+              <input type="date" id="set-rsvp-deadline" value="2026-07-19">
+            </div>
+            <div class="field-group field-group--checkbox">
+              <label>
+                <input type="checkbox" id="set-solo-adultos" checked>
+                Solo adultos (mostrar nota en el sitio)
+              </label>
+            </div>
+            <button class="btn btn--gold" type="submit">Guardar cambios</button>
+          </form>
+        </div>
+
+        <!-- Padres -->
+        <div class="admin-card">
+          <h2 class="admin-card__title">Padres de los novios</h2>
+          <form class="settings-form" id="form-padres" novalidate>
+            <p class="field-section-label">Padres de la novia</p>
+            <div class="field-group">
+              <label for="set-padre-novia">Padre</label>
+              <input type="text" id="set-padre-novia" value="Carlos Rubén Cárcamo">
+            </div>
+            <div class="field-group">
+              <label for="set-madre-novia">Madre</label>
+              <input type="text" id="set-madre-novia" value="Graciela Margarita de Cárcamo">
+            </div>
+            <div class="field-group field-group--checkbox">
+              <label>
+                <input type="checkbox" id="set-madre-novia-fallecida" checked>
+                Agregar † (finada) a la madre de la novia
+              </label>
+            </div>
+
+            <p class="field-section-label">Padres del novio</p>
+            <div class="field-group">
+              <label for="set-padre-novio">Padre</label>
+              <input type="text" id="set-padre-novio" value="Edgard Armando Zamora">
+            </div>
+            <div class="field-group">
+              <label for="set-madre-novio">Madre</label>
+              <input type="text" id="set-madre-novio" value="Julia del Carmen de Zamora">
+            </div>
+            <button class="btn btn--gold" type="submit">Guardar cambios</button>
+          </form>
+        </div>
+
+        <!-- Mensaje de bienvenida -->
+        <div class="admin-card admin-card--wide">
+          <h2 class="admin-card__title">Mensaje de bienvenida</h2>
+          <form class="settings-form" id="form-mensaje" novalidate>
+            <div class="field-group">
+              <label for="set-mensaje">Texto del hero (máx. 4 líneas)</label>
+              <textarea id="set-mensaje" rows="3" placeholder="Tenemos el honor de invitarte a nuestra boda…">Tenemos el honor de invitarte a nuestra boda</textarea>
+            </div>
+            <button class="btn btn--gold" type="submit">Guardar cambios</button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECCIÓN: CONFIRMACIONES (RSVP)
+    ══════════════════════════════════════════ -->
+    <section class="admin-section" id="section-rsvp" data-section="rsvp" hidden>
+
+      <div class="kpi-strip">
+        <div class="kpi kpi--gold">
+          <span class="kpi__num" id="rsvp-confirmed">0</span>
+          <span class="kpi__label">Confirmados</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__num" id="rsvp-pending">0</span>
+          <span class="kpi__label">Pendientes</span>
+        </div>
+        <div class="kpi kpi--muted">
+          <span class="kpi__num" id="rsvp-declined">0</span>
+          <span class="kpi__label">Declinaron</span>
+        </div>
+        <div class="kpi kpi--gold">
+          <span class="kpi__num" id="rsvp-plus-ones">0</span>
+          <span class="kpi__label">Acompañantes</span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="toolbar__search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="search" id="search-rsvp" placeholder="Buscar confirmación…" aria-label="Buscar confirmación">
+        </div>
+        <div class="toolbar__actions">
+          <button class="btn btn--ghost btn--sm" id="btn-export-rsvp" type="button">Exportar CSV</button>
+          <button class="btn btn--ghost btn--sm" id="btn-send-reminder" type="button">Enviar recordatorio (pendientes)</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="rsvp-table" aria-label="Confirmaciones de asistencia">
+          <thead>
+            <tr>
+              <th scope="col">Nombre</th>
+              <th scope="col">Correo</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acompañantes</th>
+              <th scope="col">Restricciones dietéticas</th>
+              <th scope="col">Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="rsvp-tbody">
+          </tbody>
+        </table>
+        <div class="table-empty" id="rsvp-empty">
+          <p>Aún no hay confirmaciones. Las aparecerán aquí cuando los invitados respondan.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECCIÓN: MÚSICA
+    ══════════════════════════════════════════ -->
+    <section class="admin-section" id="section-musica" data-section="musica" hidden>
+
+      <div class="kpi-strip">
+        <div class="kpi kpi--gold">
+          <span class="kpi__num" id="music-pending-count">0</span>
+          <span class="kpi__label">Pendientes</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__num" id="music-approved-count">0</span>
+          <span class="kpi__label">Aprobadas</span>
+        </div>
+        <div class="kpi kpi--muted">
+          <span class="kpi__num" id="music-rejected-count">0</span>
+          <span class="kpi__label">Rechazadas</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="music-table" aria-label="Sugerencias musicales">
+          <thead>
+            <tr>
+              <th scope="col">Canción</th>
+              <th scope="col">Artista</th>
+              <th scope="col">Sugerida por</th>
+              <th scope="col">Estado</th>
+              <th scope="col" class="col-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="music-tbody">
+          </tbody>
+        </table>
+        <div class="table-empty" id="music-empty">
+          <p>Aún no hay sugerencias musicales. Se conectarán a Spotify en la fase 16.</p>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /admin-main -->
+
+  <!-- ─────────────────────────────────────────────
+       MODAL: Agregar / editar invitado
+       ───────────────────────────────────────────── -->
+  <div class="modal-backdrop" id="modal-backdrop" hidden aria-modal="true" role="dialog" aria-labelledby="modal-title">
+    <div class="modal">
+      <header class="modal__header">
+        <h2 class="modal__title" id="modal-title">Agregar invitado</h2>
+        <button class="modal__close" id="modal-close" type="button" aria-label="Cerrar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <form class="modal__form" id="guest-form" novalidate>
+        <input type="hidden" id="guest-id">
+        <div class="modal__grid">
+          <div class="field-group">
+            <label for="guest-name">Nombre completo *</label>
+            <input type="text" id="guest-name" required placeholder="Ana García">
+          </div>
+          <div class="field-group">
+            <label for="guest-email">Correo electrónico *</label>
+            <input type="email" id="guest-email" required placeholder="ana@ejemplo.com">
+          </div>
+          <div class="field-group">
+            <label for="guest-phone">Teléfono (WhatsApp)</label>
+            <input type="tel" id="guest-phone" placeholder="+503 7000 0000">
+          </div>
+          <div class="field-group">
+            <label for="guest-companions">Acompañantes permitidos</label>
+            <input type="number" id="guest-companions" min="0" max="10" value="0">
+          </div>
+          <div class="field-group field-group--full">
+            <label for="guest-notes">Notas internas</label>
+            <textarea id="guest-notes" rows="2" placeholder="Familiar de Karlita, mesa 3…"></textarea>
+          </div>
+        </div>
+
+        <!-- Acciones de envío -->
+        <div class="modal__send">
+          <p class="modal__send-label">Enviar invitación</p>
+          <div class="modal__send-actions">
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-send-email" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+              Por correo
+            </button>
+            <button type="button" class="btn btn--ghost btn--sm btn--whatsapp" id="btn-send-whatsapp" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Por WhatsApp
+            </button>
+          </div>
+          <p class="modal__send-note">Guarda primero para habilitar el envío.</p>
+        </div>
+
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="btn-modal-cancel">Cancelar</button>
+          <button type="submit" class="btn btn--gold" id="btn-modal-save">Guardar invitado</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ─── TOAST ─── -->
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span id="toast-msg"></span>
+  </div>
+
+  <script src="/scripts/admin.js" defer></script>
+</body>
+</html>
