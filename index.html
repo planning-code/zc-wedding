@@ -27,8 +27,24 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap">
 
   <link rel="stylesheet" href="/styles/main.css">
+  <!-- YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api" defer></script>
 </head>
-<body>
+<body class="no-scroll">
+
+  <!-- ─────────────────────────────────────────────
+       Pantalla de Entrada (Entry Overlay)
+       Resuelve el bloqueo de autoplay de audio.
+       ───────────────────────────────────────────── -->
+  <div class="entry-overlay" id="entry-overlay">
+    <div class="entry-overlay__content">
+      <div class="entry-overlay__monogram">
+        <img src="/assets/monograma.png" alt="Karlita & Edgardo Monograma">
+      </div>
+      <p class="entry-overlay__text">Estás invitado a nuestra boda</p>
+      <button class="btn btn--solid" id="btn-open-invite">Abrir Invitación</button>
+    </div>
+  </div>
 
   <!-- ─────────────────────────────────────────────
        Reproductor de música de fondo
@@ -46,7 +62,10 @@
         <span class="music-player__artist">Carlos Vives</span>
       </span>
     </button>
-    <audio id="bg-music" src="/assets/volvi-a-nacer.mp3" loop preload="none"></audio>
+    <!-- YouTube player oculto -->
+    <div id="yt-player-container" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;" aria-hidden="true">
+      <div id="yt-player"></div>
+    </div>
   </div>
 
   <!-- ─────────────────────────────────────────────

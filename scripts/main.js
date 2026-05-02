@@ -74,34 +74,103 @@
   }
 
   // ─────────────────────────────────────────────
-  // 3. REPRODUCTOR DE MÚSICA
-  //    Carlos Vives — Volví a Nacer.
-  //    Los navegadores no permiten autoplay con sonido —
-  //    el usuario tiene que iniciar la reproducción.
-  //    El archivo MP3 va en /assets/volvi-a-nacer.mp3
+  // 3. REPRODUCTOR DE MÚSICA · YouTube IFrame API
   // ─────────────────────────────────────────────
 
-  const player = document.getElementById('music-player');
-  const toggle = document.getElementById('music-toggle');
-  const audio = document.getElementById('bg-music');
+  const musicPlayer = document.getElementById('music-player');
+  const musicToggle = document.getElementById('music-toggle');
+  let ytPlayer = null;
+  let ytReady = false;
+  let pendingPlay = false;
 
-  if (player && toggle && audio) {
-    audio.volume = 0.4;
+  // Función de inicialización
+  function initYTPlayer() {
+    if (ytPlayer) return; // Evitar doble inicialización
 
-    toggle.addEventListener('click', () => {
-      if (audio.paused) {
-        audio.play().then(() => {
-          player.dataset.state = 'playing';
-          toggle.setAttribute('aria-label', 'Pausar música');
-        }).catch((err) => {
-          // Si falla (por ejemplo, archivo no existe todavía), avisa en consola
-          console.warn('Audio no disponible:', err);
-        });
-      } else {
-        audio.pause();
-        player.dataset.state = 'paused';
-        toggle.setAttribute('aria-label', 'Reproducir música');
+    ytPlayer = new YT.Player('yt-player', {
+      videoId: 'X4JjW_jZ5yU',
+      playerVars: {
+        autoplay: 0,
+        loop: 1,
+        playlist: 'X4JjW_jZ5yU',
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        modestbranding: 1,
+        rel: 0,
+        showinfo: 0,
+        iv_load_policy: 3
+      },
+      events: {
+        onReady: (e) => {
+          console.log('[Música] Player listo');
+          ytReady = true;
+          e.target.setVolume(50);
+          if (pendingPlay) {
+            console.log('[Música] Ejecutando reproducción pendiente');
+            e.target.playVideo();
+            pendingPlay = false;
+          }
+        },
+        onStateChange: (e) => {
+          if (!musicPlayer) return;
+          const isPlaying = e.data === YT.PlayerState.PLAYING;
+          musicPlayer.dataset.state = isPlaying ? 'playing' : 'paused';
+          musicToggle.setAttribute('aria-label', isPlaying ? 'Pausar música' : 'Reproducir música');
+        },
+        onError: (e) => {
+          console.error('[Música] Error en el reproductor de YouTube:', e.data);
+        }
+      },
+    });
+  }
+
+  // Definir globalmente para la API
+  window.onYouTubeIframeAPIReady = initYTPlayer;
+
+  // Por si la API carga ANTES de que este script se ejecute
+  if (window.YT && window.YT.Player) {
+    initYTPlayer();
+  }
+
+  if (musicToggle) {
+    musicToggle.addEventListener('click', () => {
+      if (!ytReady || !ytPlayer) {
+        pendingPlay = true;
+        musicPlayer.dataset.state = 'loading';
+        return;
       }
+
+      const state = ytPlayer.getPlayerState();
+      if (state === YT.PlayerState.PLAYING) {
+        ytPlayer.pauseVideo();
+      } else {
+        ytPlayer.playVideo();
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // 4. LÓGICA DE PANTALLA DE ENTRADA
+  // ─────────────────────────────────────────────
+
+  const entryOverlay = document.getElementById('entry-overlay');
+  const btnOpenInvite = document.getElementById('btn-open-invite');
+
+  if (entryOverlay && btnOpenInvite) {
+    btnOpenInvite.addEventListener('click', () => {
+      // 1. Intentar reproducir música
+      if (ytReady) {
+        ytPlayer.playVideo();
+      } else {
+        pendingPlay = true;
+      }
+
+      // 2. Ocultar overlay
+      entryOverlay.classList.add('is-hidden');
+
+      // 3. Habilitar scroll
+      document.body.classList.remove('no-scroll');
     });
   }
 
