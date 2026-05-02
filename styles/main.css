@@ -108,14 +108,15 @@
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
+  box-sizing: inherit;
   margin: 0;
   padding: 0;
 }
 
 html {
-  font-size: 16px;
+  box-sizing: border-box;
   scroll-behavior: smooth;
+  overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -129,6 +130,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-weight: 400;
   overflow-x: hidden;
+  min-width: 320px;
 }
 
 img,
@@ -649,38 +651,22 @@ ul {
 
 .names-display {
   position: relative;
-  height: 200vh;        /* sección larga para que haya scroll */
-  background: var(--black);
-  isolation: isolate;
-}
-
-/* Contenedor de la foto — se pega al viewport mientras scrolleas dentro */
-.names-display__photo-wrap {
-  position: sticky;
-  top: 0;
   height: 100vh;
-  overflow: hidden;
-  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(10,10,10,0.45) 0%, rgba(10,10,10,0.0) 40%, rgba(10,10,10,0.0) 60%, rgba(10,10,10,0.65) 100%),
+    url('/photos/names-bg.jpg') center 30% / cover no-repeat;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
 }
 
-/* Foto: posición inicial al fondo, sube al scrollear (JS) */
-.names-display__photo {
-  position: absolute;
-  inset: 0;
-  background-image: url('/photos/names-bg.jpg');
-  background-size: cover;
-  background-position: center 100%;   /* empieza mostrando los pies */
-  will-change: background-position;
-  transition: background-position 0.05s linear;
-}
-
-/* Overlay que oscurece los bordes para legibilidad de los nombres */
+/* Overlay gradiente */
 .names-display__overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(10,10,10,0.55) 0%,
+    rgba(10,10,10,0.45) 0%,
     rgba(10,10,10,0.0) 40%,
     rgba(10,10,10,0.0) 60%,
     rgba(10,10,10,0.65) 100%
@@ -689,13 +675,11 @@ ul {
   pointer-events: none;
 }
 
-/* Nombres en la parte inferior del área sticky, siempre visibles */
+/* Nombres en la parte inferior, siempre visibles */
 .names-display__content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   z-index: 2;
+  width: 100%;
   padding: var(--s-8) var(--gutter) var(--s-6);
   background: linear-gradient(to top, rgba(10,10,10,0.75) 0%, transparent 100%);
 }
@@ -709,7 +693,7 @@ ul {
   color: var(--paper);
   text-align: center;
   display: flex;
-  flex-direction: row;        /* HORIZONTAL */
+  flex-direction: row;
   align-items: baseline;
   justify-content: center;
   gap: 0.2em;
