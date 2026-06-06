@@ -132,21 +132,58 @@
 
   const entryOverlay = document.getElementById('entry-overlay');
   const btnOpenInvite = document.getElementById('btn-open-invite');
+  const envelope = document.getElementById('envelope');
+
+  const prefersReducedMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  ).matches;
+
+  // Parallax sutil del sobre siguiendo el puntero (solo mientras está la entrada)
+  if (envelope && !prefersReducedMotion && window.matchMedia('(hover: hover)').matches) {
+    let raf = 0;
+    entryOverlay.addEventListener('pointermove', (e) => {
+      if (entryOverlay.classList.contains('is-opening')) return;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        const dx = (e.clientX - cx) / cx; // -1..1
+        const dy = (e.clientY - cy) / cy;
+        envelope.style.setProperty('--px', `${dx * 8}px`);
+        envelope.style.setProperty('--py', `${dy * 8}px`);
+        envelope.style.setProperty('--rx', `${dy * -4}deg`);
+        envelope.style.setProperty('--ry', `${dx * 4}deg`);
+      });
+    });
+  }
 
   if (entryOverlay && btnOpenInvite) {
+    let opening = false;
     btnOpenInvite.addEventListener('click', () => {
-      // 1. Intentar reproducir música DENTRO del gesto del usuario.
-      //    Con <audio> nativo el gesto del click cuenta como permiso de autoplay
-      //    en todos los navegadores actuales (Chrome, Safari iOS, Firefox).
+      if (opening) return;
+      opening = true;
+      btnOpenInvite.disabled = true;
+
+      // 1. Reproducir música DENTRO del gesto del usuario (autoplay permitido).
       tryPlayAudio().catch((err) => {
         console.warn('[Música] Reproducción bloqueada en entrada:', err);
       });
 
-      // 2. Ocultar overlay
-      entryOverlay.classList.add('is-hidden');
+      // 2. Abrir el sobre (la animación vive en CSS).
+      if (envelope) {
+        envelope.style.removeProperty('--px');
+        envelope.style.removeProperty('--py');
+        envelope.style.removeProperty('--rx');
+        envelope.style.removeProperty('--ry');
+      }
+      entryOverlay.classList.add('is-opening');
 
-      // 3. Habilitar scroll
-      document.body.classList.remove('no-scroll');
+      // 3. Tras la apertura, desvanecer la entrada y liberar el scroll.
+      const reveal = () => {
+        entryOverlay.classList.add('is-hidden');
+        document.body.classList.remove('no-scroll');
+      };
+      window.setTimeout(reveal, prefersReducedMotion ? 200 : 1500);
     });
   }
 

@@ -36,10 +36,20 @@
        ───────────────────────────────────────────── -->
   <div class="entry-overlay" id="entry-overlay">
     <div class="entry-overlay__content">
-      <div class="entry-overlay__monogram">
-        <img src="/assets/monograma.png" alt="Karlita & Edgardo Monograma">
+      <!-- Sobre simulado con líneas (no es una foto) -->
+      <div class="envelope" id="envelope" aria-hidden="true">
+        <div class="envelope__letter">
+          <img src="/assets/monograma.png" alt="" class="envelope__monogram">
+          <span class="envelope__letter-line"></span>
+          <span class="envelope__letter-line envelope__letter-line--short"></span>
+        </div>
+        <div class="envelope__body">
+          <span class="envelope__seam envelope__seam--left"></span>
+          <span class="envelope__seam envelope__seam--right"></span>
+        </div>
+        <div class="envelope__flap"></div>
       </div>
-      <p class="entry-overlay__text">Estás invitado a nuestra boda</p>
+
       <button class="btn btn--solid" id="btn-open-invite">Abrir Invitación</button>
     </div>
   </div>
@@ -57,7 +67,7 @@
       </span>
       <span class="music-player__meta">
         <span class="music-player__track">Volví a Nacer</span>
-        <span class="music-player__artist">Carlos Vives ft. J Alvarez</span>
+        <span class="music-player__artist">Carlos Vives</span>
       </span>
     </button>
     <audio id="bg-audio" src="/assets/audio/volvi-a-nacer.mp3" preload="auto" loop playsinline></audio>
@@ -71,28 +81,12 @@
     <div class="hero__overlay" aria-hidden="true"></div>
 
     <div class="hero__inner">
-      <div class="monogram">
-        <img src="/assets/monograma.png" alt="Karlita & Edgardo Monograma" class="monogram__img">
-      </div>
-
-      <p class="hero__pretext">Tenemos el honor de invitarte a nuestra boda</p>
-
-
-
-      <div class="hero__date" aria-label="16 de agosto de 2026">
-        <span>16</span>
-        <span class="hero__dot" aria-hidden="true"></span>
-        <span>AGOSTO</span>
-        <span class="hero__dot" aria-hidden="true"></span>
-        <span>2026</span>
-      </div>
-
-      <p class="hero__venue">Hilton San Salvador · 4:00 PM</p>
-    </div>
-
-    <div class="hero__scroll" aria-hidden="true">
-      <span class="hero__scroll-line"></span>
-      <span class="hero__scroll-text">Desliza</span>
+      <h1 class="hero__title">
+        <span class="hero__title-line">KARLITA</span>
+        <span class="hero__title-amp" aria-hidden="true">&</span>
+        <span class="hero__title-line">EDGARDO</span>
+      </h1>
+      <p class="hero__tagline">Nos casamos</p>
     </div>
   </section>
 
@@ -120,33 +114,14 @@
   </section>
 
   <!-- ─────────────────────────────────────────────
-       3. NOMBRES · Tipografía editorial
+       3. SAVE THE DATE · Invitación + cuenta regresiva
        ───────────────────────────────────────────── -->
-  <section class="names-display" id="nombres">
-    <!-- Overlay gradiente -->
-    <div class="names-display__overlay" aria-hidden="true"></div>
-
-    <!-- Nombres horizontales siempre visibles -->
-    <div class="names-display__content">
-      <h2 class="names-display__type">
-        <span class="names-display__line">KARLITA</span>
-        <span class="names-display__amp" aria-hidden="true">&</span>
-        <span class="names-display__line">EDGARDO</span>
-      </h2>
-    </div>
-  </section>
-
-  <!-- ─────────────────────────────────────────────
-       4. CUENTA REGRESIVA
-       ───────────────────────────────────────────── -->
-  <section class="countdown" id="cuenta-regresiva">
-    <div class="countdown__bg" aria-hidden="true"></div>
-    <div class="countdown__overlay" aria-hidden="true"></div>
-
-    <div class="countdown__inner">
-      <p class="kicker kicker--light">Save the date</p>
-      <h2 class="countdown__date">Domingo 16 de agosto de 2026</h2>
-      <p class="countdown__time">4:00 PM</p>
+  <section class="save-date" id="save-the-date">
+    <div class="save-date__bg" aria-hidden="true"></div>
+    <div class="save-date__overlay" aria-hidden="true"></div>
+    <div class="save-date__inner">
+      <p class="kicker kicker--light save-date__kicker">Acompáñanos a celebrar el día más importante de nuestras vidas</p>
+      <p class="save-date__date">Domingo 16 de agosto de 2026 · 4:00 PM</p>
 
       <div class="timer" id="timer" aria-live="polite">
         <div class="timer__unit">
@@ -170,7 +145,7 @@
         </div>
       </div>
 
-      <div class="countdown__actions">
+      <div class="save-date__actions">
         <a class="btn btn--ghost-light" href="#" id="btn-google-cal" target="_blank" rel="noopener">Agregar a Google Calendar</a>
         <a class="btn btn--ghost-light" href="/assets/invite.ics" download>Apple · Outlook (.ics)</a>
       </div>
@@ -238,54 +213,57 @@
     </header>
 
     <ol class="agenda__list">
-      <li class="agenda__item">
-        <span class="agenda__time">3:30 <em>PM</em></span>
-        <div class="agenda__body">
-          <h4>Recepción de invitados</h4>
-          <p>Terraza Mesoamérica</p>
-        </div>
-      </li>
       <li class="agenda__item agenda__item--accent">
-        <span class="agenda__time">4:00 <em>PM</em></span>
+        <span class="agenda__time">4:30 <em>PM</em></span>
         <div class="agenda__body">
-          <h4>Ceremonia civil</h4>
+          <h4>Ceremonia</h4>
           <p>Terraza Mesoamérica</p>
         </div>
       </li>
       <li class="agenda__item">
         <span class="agenda__time">5:30 <em>PM</em></span>
         <div class="agenda__body">
-          <h4>Cocktail</h4>
+          <h4>Coctel de bienvenida</h4>
           <p>Antesala del Salón Mesoamérica</p>
+        </div>
+      </li>
+      <li class="agenda__item">
+        <span class="agenda__time">6:30 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Entrada y primer baile de los esposos</h4>
+          <p>Salón Mesoamérica 2 y 3</p>
         </div>
       </li>
       <li class="agenda__item">
         <span class="agenda__time">7:00 <em>PM</em></span>
         <div class="agenda__body">
-          <h4>Recepción y cena</h4>
+          <h4>Brindis y cena</h4>
           <p>Salón Mesoamérica 2 y 3</p>
         </div>
       </li>
       <li class="agenda__item">
-        <span class="agenda__time">8:30 <em>PM</em></span>
+        <span class="agenda__time">8:00 <em>PM</em></span>
         <div class="agenda__body">
-          <h4>Primer baile</h4>
+          <h4>Apertura de pista</h4>
+          <p>Salón Mesoamérica 2 y 3</p>
         </div>
       </li>
       <li class="agenda__item">
-        <span class="agenda__time">9:00 <em>PM</em></span>
+        <span class="agenda__time">9:30 <em>PM</em></span>
         <div class="agenda__body">
-          <h4>Pista abierta</h4>
+          <h4>La hora dulce</h4>
+          <p>Pastel y postres</p>
+        </div>
+      </li>
+      <li class="agenda__item">
+        <span class="agenda__time">10:00 <em>PM</em></span>
+        <div class="agenda__body">
+          <h4>Carnaval</h4>
+          <p>Salón Mesoamérica 2 y 3</p>
         </div>
       </li>
       <li class="agenda__item">
         <span class="agenda__time">11:00 <em>PM</em></span>
-        <div class="agenda__body">
-          <h4>Pastel y brindis</h4>
-        </div>
-      </li>
-      <li class="agenda__item">
-        <span class="agenda__time">1:00 <em>AM</em></span>
         <div class="agenda__body">
           <h4>Cierre</h4>
         </div>
@@ -326,7 +304,7 @@
         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3876.0!2d-89.23270!3d13.70279!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6330b1b4f4f0c1%3A0x7c5d39e4e5c5e5c5!2sHilton%20San%20Salvador!5e0!3m2!1ses!2ssv!4v1620000000000!5m2!1ses!2ssv"
         width="100%"
         height="100%"
-        style="border:0; filter: grayscale(1) contrast(1.05); min-height: 360px;"
+        style="filter: grayscale(1) contrast(1.05);"
         loading="lazy"
         referrerpolicy="no-referrer-when-downgrade"
         allowfullscreen
@@ -362,7 +340,7 @@
 
       <p class="dress__note">Por favor evita blanco, marfil y beige claro — esos tonos los reservamos para la novia.</p>
 
-      <a class="btn btn--ghost" href="https://pinterest.com" id="btn-pinterest" target="_blank" rel="noopener">Ver inspiración en Pinterest →</a>
+      <a class="btn btn--ghost" href="https://www.pinterest.com/karlacarcamo030/boda-egakarlita/?invite_code=60cd8a89016248ddac18e7e036de8149&sender=439523382292173912" id="btn-pinterest" target="_blank" rel="noopener">Ver inspiración en Pinterest →</a>
     </div>
   </section>
 
@@ -401,11 +379,11 @@
         <div class="attendance-toggle">
           <label class="attendance-option">
             <input type="radio" name="attendance" value="yes" required>
-            <span class="attendance-box">Asistire</span>
+            <span class="attendance-box">Asistiré</span>
           </label>
           <label class="attendance-option">
             <input type="radio" name="attendance" value="no" required>
-            <span class="attendance-box">No podre asistir</span>
+            <span class="attendance-box">No podré asistir</span>
           </label>
         </div>
       </div>
@@ -478,15 +456,31 @@
       <h2 class="section__title">Sugiere una canción</h2>
       <p>Cuéntanos qué quieres bailar esa noche. Karlita y Edgardo revisan cada sugerencia antes de agregarla al playlist.</p>
 
-      <form class="music-suggestion__form" id="song-form" novalidate>
-        <div class="form-group">
-          <label for="song-search">Buscar en Spotify</label>
-          <input type="text" id="song-search" name="song-search" placeholder="Nombre de la canción o artista">
-        </div>
-        <button type="submit" class="btn btn--ghost">Buscar</button>
-      </form>
+      <!-- Gate de login (visible sin sesión) -->
+      <div class="auth-gate" data-auth-gate hidden>
+        <p class="auth-gate__text">Inicia sesión para poder sugerir canciones.</p>
+        <form class="auth-gate__form" data-auth-form>
+          <div class="form-group">
+            <label for="music-email">Correo electrónico</label>
+            <input type="email" id="music-email" name="email" placeholder="tucorreo@ejemplo.com" autocomplete="email" required>
+          </div>
+          <button type="submit" class="btn btn--ghost">Enviar enlace de acceso</button>
+        </form>
+        <p class="auth-gate__msg" data-auth-msg aria-live="polite"></p>
+      </div>
 
-      <p class="form-mock-note">Mock — la búsqueda en Spotify se conecta en la fase 16.</p>
+      <!-- Contenido protegido (visible con sesión) -->
+      <div class="auth-protected" data-auth-protected hidden>
+        <form class="music-suggestion__form" id="song-form" novalidate>
+          <div class="form-group">
+            <label for="song-search">Buscar en Spotify</label>
+            <input type="text" id="song-search" name="song-search" placeholder="Nombre de la canción o artista">
+          </div>
+          <button type="submit" class="btn btn--ghost">Buscar</button>
+        </form>
+        <ul class="song-results" id="song-results" aria-live="polite"></ul>
+        <p class="song-feedback" id="song-feedback" aria-live="polite"></p>
+      </div>
     </div>
   </section>
 
@@ -527,6 +521,8 @@
     </div>
   </section>
 
+  <script src="/scripts/config.js"></script>
   <script src="/scripts/main.js" defer></script>
+  <script src="/scripts/auth.js" type="module"></script>
 </body>
 </html>
