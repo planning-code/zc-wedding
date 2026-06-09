@@ -337,6 +337,9 @@ ul {
   color: var(--gold);
 }
 
+/* Salto de línea que solo se activa en móvil (ver media query) */
+.kicker-break { display: none; }
+
 .kicker--light {
   color: var(--on-photo-secondary);
   text-shadow: var(--text-shadow-soft);
@@ -2083,6 +2086,13 @@ ul {
   .kicker::after {
     margin: 0;
     flex-shrink: 0;
+  }
+
+  /* "Acompáñanos a celebrar…": forzar exactamente 2 líneas en móvil */
+  .kicker-break { display: inline; }
+  .save-date__kicker {
+    max-width: none;
+    letter-spacing: 0.08em;
   }
 
   /* Bloques de copy: pasar de alineado a la izquierda → centrado */
