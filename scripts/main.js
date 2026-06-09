@@ -153,11 +153,12 @@
       entryOverlay.classList.add('is-opening');
 
       // 3. Tras la apertura, desvanecer la entrada y liberar el scroll.
+      // Esperar a que la solapa termine de abrir (1100ms) + el fondo revele el hero (1150ms delay + 650ms)
       const reveal = () => {
         entryOverlay.classList.add('is-hidden');
         document.body.classList.remove('no-scroll');
       };
-      window.setTimeout(reveal, prefersReducedMotion ? 200 : 1500);
+      window.setTimeout(reveal, prefersReducedMotion ? 200 : 1900);
     });
   }
 

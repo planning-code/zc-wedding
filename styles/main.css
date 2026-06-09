@@ -198,7 +198,8 @@ h1, h2, h3, h4, h5, h6,
   inset: 0;
   background: var(--black);
   z-index: 0;
-  transition: opacity 900ms var(--ease-out);
+  /* El fondo (la "carta") espera a que la solapa termine de abrir (1100ms) y luego revela el hero */
+  transition: opacity 650ms var(--ease-out) 1150ms;
 }
 
 .entry-overlay__content {
@@ -226,7 +227,8 @@ h1, h2, h3, h4, h5, h6,
   z-index: 1;
   transform-origin: top center;
   transform: rotateX(0deg);
-  transition: transform 1100ms var(--ease-in-out), opacity 600ms var(--ease-out) 500ms;
+  /* Rota completo (1100ms); el sello+líneas solo se desvanecen al final */
+  transition: transform 1100ms var(--ease-in-out), opacity 400ms var(--ease-out) 1150ms;
   will-change: transform;
 }
 
@@ -768,7 +770,9 @@ ul {
 
 .save-date {
   position: relative;
-  padding: clamp(var(--s-14), 12vw, var(--s-20)) var(--gutter);
+  min-height: 90vh;
+  display: flex;
+  padding: clamp(var(--s-8), 7vw, var(--s-12)) var(--gutter) clamp(var(--s-10), 9vw, var(--s-16));
   background: var(--black);
   color: var(--paper);
   text-align: center;
@@ -796,19 +800,33 @@ ul {
 }
 
 .save-date__inner {
-  max-width: 56rem;
+  flex: 1;
+  width: 100%;
+  max-width: 60rem;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s-5);
 }
 
+/* Kicker arriba, en una sola línea (desktop) */
 .save-date__kicker {
   display: block;
   text-align: center;
-  max-width: 34ch;
-  line-height: 1.9;
+  white-space: nowrap;
+  max-width: none;
+  letter-spacing: 0.14em;
+  line-height: 1.6;
+}
+
+/* Cuerpo (fecha → botón) empujado hacia abajo: deja ver la foto */
+.save-date__body {
+  margin-top: auto;
+  padding-top: clamp(var(--s-12), 22vh, var(--s-24));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-5);
 }
 
 .save-date__date {
@@ -818,6 +836,25 @@ ul {
   color: var(--gold-light);
   letter-spacing: 0.01em;
   text-shadow: var(--text-shadow-soft);
+}
+
+.save-date__place {
+  font-size: clamp(0.9375rem, 1.4vw, 1.125rem);
+  letter-spacing: var(--tracking-wide);
+  color: var(--on-photo-secondary);
+  text-shadow: var(--text-shadow-soft);
+  margin-top: calc(var(--s-3) * -1);
+}
+
+@media (max-width: 600px) {
+  .save-date__kicker {
+    white-space: normal;
+    max-width: 22ch;
+    line-height: 1.7;
+  }
+  .save-date__body {
+    padding-top: clamp(var(--s-10), 16vh, var(--s-16));
+  }
 }
 
 .timer {
