@@ -651,6 +651,110 @@ table { border-collapse: collapse; width: 100%; }
   }
 }
 
+/* ─── Badges extra (alias de estado) ─── */
+.badge--success { background: rgba(39,174,96,.15); color: var(--success); border: 1px solid rgba(39,174,96,.3); }
+.badge--warning { background: rgba(243,156,18,.15); color: var(--warning); border: 1px solid rgba(243,156,18,.3); }
+
+/* ─── Botón de Google ─── */
+.btn--google {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .7em 1.4em;
+  background: var(--white);
+  color: #1f1f1f;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-weight: 500;
+}
+.btn--google:hover { background: #f1f1f1; }
+.g-icon { flex-shrink: 0; }
+
+/* ─── Gate de acceso ─── */
+.admin-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--surface-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.admin-gate__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+  max-width: 24rem;
+}
+.admin-gate__logo { width: 84px; filter: invert(1); opacity: .9; }
+.admin-gate__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.75rem;
+  color: var(--text-1);
+}
+.admin-gate__text { color: var(--text-2); line-height: 1.5; }
+.admin-gate__signout {
+  color: var(--text-3);
+  font-size: .8125rem;
+  text-decoration: underline;
+}
+.admin-gate__signout:hover { color: var(--text-2); }
+
+/* ─── Sidebar backdrop (móvil) ─── */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 40;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--t-base) var(--ease-out), visibility var(--t-base);
+}
+.sidebar-backdrop.is-visible { opacity: 1; visibility: visible; }
+
+/* ─── Selector de orden ─── */
+.admin-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .8125rem;
+  color: var(--text-2);
+}
+.admin-sort select { padding: .45em .75em; }
+
+/* ─── Galería de admin ─── */
+.admin-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: .75rem;
+}
+.admin-photo {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.admin-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-photo__meta {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .5rem .6rem;
+  font-size: .6875rem;
+  color: var(--text-1);
+  background: linear-gradient(0deg, rgba(0,0,0,.82), transparent);
+}
+.admin-photo__who { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-photo__date { color: var(--text-2); flex-shrink: 0; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .01ms !important;
