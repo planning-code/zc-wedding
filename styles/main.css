@@ -770,9 +770,11 @@ ul {
 
 .save-date {
   position: relative;
-  min-height: 90vh;
+  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
-  padding: clamp(var(--s-8), 7vw, var(--s-12)) var(--gutter) clamp(var(--s-10), 9vw, var(--s-16));
+  align-items: stretch;
+  padding: clamp(var(--s-8), 7vw, var(--s-12)) var(--gutter) clamp(var(--s-10), 8vw, var(--s-14));
   background: var(--black);
   color: var(--paper);
   text-align: center;
@@ -783,7 +785,8 @@ ul {
 .save-date__bg {
   position: absolute;
   inset: 0;
-  background: url('/photos/names-bg.jpg') center 30% / cover no-repeat;
+  /* Encuadre: las caras quedan en el tercio superior; el texto vive abajo, despejado */
+  background: url('/photos/names-bg.jpg') center 18% / cover no-repeat;
   z-index: -2;
 }
 
@@ -819,10 +822,11 @@ ul {
   line-height: 1.6;
 }
 
-/* Cuerpo (fecha → botón) empujado hacia abajo: deja ver la foto */
+/* Cuerpo (fecha → botón) anclado al fondo de la sección: la mitad superior
+   (caras de los novios) queda despejada */
 .save-date__body {
   margin-top: auto;
-  padding-top: clamp(var(--s-12), 22vh, var(--s-24));
+  padding-top: var(--s-8);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -851,9 +855,6 @@ ul {
     white-space: normal;
     max-width: 22ch;
     line-height: 1.7;
-  }
-  .save-date__body {
-    padding-top: clamp(var(--s-10), 16vh, var(--s-16));
   }
 }
 
