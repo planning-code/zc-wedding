@@ -2069,6 +2069,22 @@ ul {
    heredadas del layout de escritorio.
    ----------------------------- */
 @media (max-width: 768px) {
+  /* Kickers largos con dots: que los dots flanqueen TODO el bloque
+     (centrados vertical y horizontalmente), aunque el texto se parta
+     en varias líneas. Antes los dots se pegaban al inicio/fin de renglón. */
+  .kicker {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-3);
+  }
+  .kicker::before,
+  .kicker::after {
+    margin: 0;
+    flex-shrink: 0;
+  }
+
   /* Bloques de copy: pasar de alineado a la izquierda → centrado */
   .story__copy,
   .venue__copy,
