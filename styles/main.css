@@ -186,120 +186,78 @@ h1, h2, h3, h4, h5, h6,
   pointer-events: none;
 }
 
+.entry-overlay {
+  perspective: 1400px;
+  background: transparent; /* el panel oscuro vive en .entry-flap */
+}
+
 .entry-overlay__content {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s-10);
-  max-width: 22rem;
-  perspective: 1100px;
+  margin-top: 34vh;
+  transition: opacity var(--t-base) var(--ease-out);
 }
 
 .entry-overlay .btn {
   padding: 1.15rem 2.5rem;
   font-size: 0.9rem;
   letter-spacing: 0.15em;
-  transition: opacity var(--t-base) var(--ease-out),
-              transform var(--t-fast) var(--ease-out);
 }
 
-/* ---- Sobre simulado con líneas (no es una foto) ---- */
-.envelope {
-  position: relative;
-  width: min(78vw, 320px);
-  aspect-ratio: 3 / 2;
-  transform-style: preserve-3d;
-  transform:
-    translate3d(var(--px, 0), var(--py, 0), 0)
-    rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 700ms var(--ease-out);
-  will-change: transform;
-}
-
-/* Cuerpo del sobre: solo el contorno + costuras en V */
-.envelope__body {
+/* ---- Solapa: panel oscuro + 2 líneas diagonales + sello ---- */
+.entry-flap {
   position: absolute;
   inset: 0;
-  border: 1px solid var(--gold);
-  background: rgba(212, 181, 127, 0.03);
   z-index: 1;
-}
-
-.envelope__seam {
-  position: absolute;
-  bottom: -1px;
-  width: 58%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold) 85%);
-}
-
-.envelope__seam--left  { left: -1px;  transform-origin: bottom left;  transform: rotate(-34deg); }
-.envelope__seam--right { right: -1px; transform-origin: bottom right; transform: rotate(34deg); }
-
-/* La carta que emerge */
-.envelope__letter {
-  position: absolute;
-  left: 9%;
-  right: 9%;
-  top: 16%;
-  bottom: 9%;
-  background: var(--paper);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-3);
-  z-index: 2;
-  transform: translateY(0);
-  transition: transform 800ms var(--ease-out) 220ms;
-}
-
-.envelope__monogram {
-  width: 46%;
-  max-width: 110px;
-  opacity: 0.92;
-}
-
-.envelope__letter-line {
-  width: 52%;
-  height: 1px;
-  background: var(--grey-300);
-}
-
-.envelope__letter-line--short { width: 34%; }
-
-/* La solapa: triángulo dibujado con clip-path, se abre en 3D */
-.envelope__flap {
-  position: absolute;
-  inset: 0;
-  border: 1px solid var(--gold);
-  background: linear-gradient(180deg, rgba(212,181,127,0.10), rgba(212,181,127,0.02));
-  clip-path: polygon(0 0, 100% 0, 50% 64%);
+  background: var(--black);
   transform-origin: top center;
   transform: rotateX(0deg);
-  transition: transform 750ms var(--ease-in-out);
+  transition: transform 1100ms var(--ease-in-out), opacity 700ms var(--ease-out) 400ms;
+  will-change: transform;
   backface-visibility: hidden;
-  z-index: 3;
 }
 
-/* ---- Estado de apertura ---- */
-.entry-overlay.is-opening .envelope {
-  transform: translateY(-2%) scale(1.02);
+/* Las 2 líneas van del centro a cada esquina superior */
+.entry-flap__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
-.entry-overlay.is-opening .envelope__flap {
-  transform: rotateX(178deg);
-  z-index: 0;
+.entry-flap__lines line {
+  stroke: var(--gold);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
 }
 
-.entry-overlay.is-opening .envelope__letter {
-  transform: translateY(-46%) scale(1.04);
+/* El sello, en el punto donde convergen las líneas (centro) */
+.entry-flap__seal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(96px, 22vw, 150px);
 }
 
-.entry-overlay.is-opening .btn {
+.entry-flap__seal img {
+  width: 100%;
+  filter: invert(1) drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
+  mix-blend-mode: screen;
+}
+
+/* ---- Apertura: la solapa se levanta con el borde superior como pivote ---- */
+.entry-overlay.is-opening .entry-flap {
+  transform: rotateX(-125deg);
   opacity: 0;
-  transform: translateY(8px);
+}
+
+.entry-overlay.is-opening .entry-overlay__content {
+  opacity: 0;
   pointer-events: none;
 }
 
@@ -671,16 +629,17 @@ ul {
 .hero__title {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(2.75rem, 11vw, 8.5rem);
-  line-height: 0.92;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.5rem, 6.4vw, 7rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
   color: var(--on-photo-primary);
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline;
   justify-content: center;
-  gap: 0.18em;
+  gap: 0.22em;
+  white-space: nowrap;
   text-shadow: var(--text-shadow-strong);
   font-feature-settings: "kern" 1, "liga" 1, "dlig" 1, "ss01" 1;
 }
@@ -824,6 +783,8 @@ ul {
 }
 
 .save-date__kicker {
+  display: block;
+  text-align: center;
   max-width: 34ch;
   line-height: 1.9;
 }
@@ -1103,13 +1064,9 @@ ul {
 
 .venue__media {
   grid-column: 1;
-  grid-row: 1 / 3;
+  grid-row: 1;
   aspect-ratio: 4 / 5;
   overflow: hidden;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  max-height: 100vh;
 }
 
 .venue__media img {
@@ -1162,9 +1119,9 @@ ul {
 }
 
 .venue__map {
-  grid-column: 2;
+  grid-column: 1 / -1;
   grid-row: 2;
-  padding: 0 var(--gutter) clamp(var(--s-12), 9vw, var(--s-16));
+  padding: clamp(var(--s-8), 6vw, var(--s-12)) var(--gutter) clamp(var(--s-12), 9vw, var(--s-16));
   background: var(--paper);
   display: flex;
   align-items: stretch;
@@ -1173,7 +1130,8 @@ ul {
 
 .venue__map iframe {
   width: 100%;
-  min-height: clamp(320px, 38vh, 460px);
+  max-width: var(--max-width);
+  min-height: clamp(320px, 42vh, 480px);
   border: 1px solid var(--grey-200);
 }
 
@@ -1798,6 +1756,31 @@ ul {
   align-self: flex-start;
 }
 
+/* Botón de Google */
+.btn--google {
+  align-self: flex-start;
+  gap: var(--s-3);
+  background: var(--white);
+  color: #1f1f1f;
+  border-color: var(--grey-300);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+.btn--google:hover {
+  background: var(--paper);
+  border-color: var(--grey-500);
+}
+
+.auth-gate--center .btn--google {
+  align-self: center;
+}
+
+.g-icon {
+  flex-shrink: 0;
+}
+
 .auth-gate__msg {
   font-size: var(--type-caption);
   color: var(--grey-500);
@@ -1995,9 +1978,9 @@ ul {
 }
 
 @media (max-width: 480px) {
-  /* Hero: que los nombres respiren y no toquen los bordes */
+  /* Hero: nombres en una sola línea, anclados abajo */
   .hero { padding: var(--s-10) var(--gutter) var(--s-12); }
-  .hero__title { font-size: clamp(2.5rem, 13vw, 4rem); gap: 0.12em; }
+  .hero__title { font-size: clamp(1.2rem, 6.6vw, 2rem); gap: 0.16em; letter-spacing: -0.01em; }
   .hero__tagline { letter-spacing: 0.3em; text-indent: 0.3em; }
 
   .save-date__headline { font-size: clamp(1.5rem, 6.5vw, 2rem); }

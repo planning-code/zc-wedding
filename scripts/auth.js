@@ -33,34 +33,26 @@ function applyAuthState(session) {
 }
 
 // ─────────────────────────────────────────────
-// 2. Formularios de login (enlace mágico)
+// 2. Login con Google (OAuth)
 // ─────────────────────────────────────────────
 
-function wireAuthForms() {
-  document.querySelectorAll('[data-auth-form]').forEach((form) => {
-    const msg = form.parentElement.querySelector('[data-auth-msg]');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = form.querySelector('input[type="email"]').value.trim();
-      if (!email) return;
-
-      const btn = form.querySelector('button');
-      if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = 'Enviando…'; }
+export function wireGoogleLogin(client = supabase) {
+  document.querySelectorAll('[data-google-login]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const msg = btn.parentElement.querySelector('[data-auth-msg]');
+      btn.disabled = true;
       if (msg) { msg.textContent = ''; msg.classList.remove('is-error'); }
-
       try {
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: `${location.origin}${location.pathname}` },
+        const { error } = await client.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: `${location.origin}${location.pathname}` },
         });
         if (error) throw error;
-        if (msg) msg.textContent = 'Te enviamos un enlace de acceso a tu correo. Ábrelo desde este mismo dispositivo.';
-        form.reset();
+        // El navegador redirige a Google; no hace falta más.
       } catch (err) {
-        console.error('[Auth] signInWithOtp:', err);
-        if (msg) { msg.textContent = 'No pudimos enviar el enlace. Revisa el correo e inténtalo de nuevo.'; msg.classList.add('is-error'); }
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Enviar enlace de acceso'; }
+        console.error('[Auth] signInWithOAuth:', err);
+        btn.disabled = false;
+        if (msg) { msg.textContent = 'No pudimos iniciar sesión con Google. Inténtalo de nuevo.'; msg.classList.add('is-error'); }
       }
     });
   });
@@ -69,7 +61,7 @@ function wireAuthForms() {
   document.querySelectorAll('[data-logout]').forEach((el) => {
     el.addEventListener('click', async (e) => {
       e.preventDefault();
-      await supabase.auth.signOut();
+      await client.auth.signOut();
     });
   });
 }
@@ -160,5 +152,5 @@ function escapeHtml(s) {
 supabase.auth.getSession().then(({ data }) => applyAuthState(data.session));
 supabase.auth.onAuthStateChange((_event, session) => applyAuthState(session));
 
-wireAuthForms();
+wireGoogleLogin();
 wireSongSearch();
