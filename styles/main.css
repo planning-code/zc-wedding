@@ -2063,6 +2063,93 @@ ul {
 }
 
 /* -----------------------------
+   21d. AUDIT MÓVIL · Centrar TODOS los textos (solo móvil)
+   Emil: en móvil la columna es una sola; el contenido debe vivir
+   centrado, con medida (ch) y ritmo consistente. Nada de sangrías
+   heredadas del layout de escritorio.
+   ----------------------------- */
+@media (max-width: 768px) {
+  /* Bloques de copy: pasar de alineado a la izquierda → centrado */
+  .story__copy,
+  .venue__copy,
+  .dress__copy,
+  .music-suggestion__copy,
+  .gallery-teaser__copy,
+  .gallery-teaser__copy {
+    align-items: center;
+    text-align: center;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  /* Cuerpos con medida tipográfica: centrados y con ancho cómodo */
+  .story__heading,
+  .story__body,
+  .dress__lead,
+  .dress__note,
+  .dress__copy p,
+  .music-suggestion__copy p,
+  .gallery-teaser__copy p,
+  .venue__address {
+    max-width: 36ch;
+    margin-inline: auto;
+  }
+
+  /* Botones dentro de copy: centrados (no pegados a la izquierda) */
+  .venue__copy .btn,
+  .dress__copy .btn,
+  .gallery-teaser__copy .btn,
+  .music-suggestion__form .btn,
+  .auth-gate__form .btn,
+  .btn--google {
+    align-self: center;
+  }
+
+  /* Venue: detalle y dirección centrados */
+  .venue__detail { text-align: center; }
+
+  /* Dress code: reglas Ellas/Ellos apiladas y centradas */
+  .dress__rules { align-items: center; }
+  .dress__rule {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: var(--s-1);
+  }
+  .dress__rule-label { padding-top: 0; }
+
+  /* Itinerario: apilar hora + descripción, todo centrado */
+  .agenda__item {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: var(--s-1);
+    padding: var(--s-4) 0;
+  }
+  .agenda__body h4 { margin-bottom: 0; }
+
+  /* Música: gate y formulario centrados */
+  .music-suggestion__form { align-items: center; }
+  .auth-gate { align-items: center; text-align: center; margin-inline: auto; }
+  .auth-gate__form { align-items: center; }
+  .auth-gate__text,
+  .auth-gate__msg,
+  .song-feedback { text-align: center; }
+
+  /* Galería (gallery.html): controles centrados */
+  .gallery-upload { justify-content: center; }
+  .gallery-upload__status { text-align: center; }
+
+  /* RSVP: etiquetas, mensajes y campos centrados */
+  .rsvp__form .form-group { align-items: center; }
+  .rsvp__form .form-group label { text-align: center; }
+  .rsvp__form .form-group input,
+  .rsvp__form .form-group textarea { text-align: center; }
+  .rsvp__thanks { text-align: center; }
+  .form-mock-note { text-align: center; }
+}
+
+/* -----------------------------
    22. MOVIMIENTO REDUCIDO
    ----------------------------- */
 
