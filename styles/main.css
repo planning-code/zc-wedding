@@ -188,16 +188,28 @@ h1, h2, h3, h4, h5, h6,
 
 .entry-overlay {
   perspective: 1400px;
-  background: transparent; /* el panel oscuro vive en .entry-flap */
+  background: transparent;
+}
+
+/* Fondo oscuro (la "carta"): se desvanece aparte, NO rota */
+.entry-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--black);
+  z-index: 0;
+  transition: opacity 900ms var(--ease-out);
 }
 
 .entry-overlay__content {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  bottom: clamp(2rem, 12vh, 6rem);
+  transform: translateX(-50%);
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 34vh;
   transition: opacity var(--t-base) var(--ease-out);
 }
 
@@ -207,17 +219,15 @@ h1, h2, h3, h4, h5, h6,
   letter-spacing: 0.15em;
 }
 
-/* ---- Solapa: panel oscuro + 2 líneas diagonales + sello ---- */
+/* ---- Solapa: SOLO líneas + sello (sin fondo). Rota como una solapa ---- */
 .entry-flap {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: var(--black);
   transform-origin: top center;
   transform: rotateX(0deg);
-  transition: transform 1100ms var(--ease-in-out), opacity 700ms var(--ease-out) 400ms;
+  transition: transform 1100ms var(--ease-in-out), opacity 600ms var(--ease-out) 500ms;
   will-change: transform;
-  backface-visibility: hidden;
 }
 
 /* Las 2 líneas van del centro a cada esquina superior */
@@ -230,29 +240,41 @@ h1, h2, h3, h4, h5, h6,
 
 .entry-flap__lines line {
   stroke: var(--gold);
+  stroke-opacity: 0.32;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  opacity: 0.85;
 }
 
-/* El sello, en el punto donde convergen las líneas (centro) */
+/* El sello circular, donde convergen las líneas (centro) */
 .entry-flap__seal {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(96px, 22vw, 150px);
+  width: clamp(116px, 24vw, 172px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 181, 127, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 181, 127, 0.04);
+  box-shadow: 0 0 0 6px rgba(10, 10, 10, 0.5), 0 6px 26px rgba(0, 0, 0, 0.5);
 }
 
 .entry-flap__seal img {
-  width: 100%;
-  filter: invert(1) drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
+  width: 60%;
+  filter: invert(1) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
   mix-blend-mode: screen;
 }
 
-/* ---- Apertura: la solapa se levanta con el borde superior como pivote ---- */
+/* ---- Apertura: las líneas + el sello se levantan hacia afuera ---- */
+.entry-overlay.is-opening::before {
+  opacity: 0;
+}
+
 .entry-overlay.is-opening .entry-flap {
-  transform: rotateX(-125deg);
+  transform: rotateX(135deg);
   opacity: 0;
 }
 
