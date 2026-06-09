@@ -1132,6 +1132,8 @@ ul {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Forzar blanco y negro real (evita el "bleeding" de color del archivo) */
+  filter: grayscale(1) contrast(1.04);
 }
 
 .venue__copy {
