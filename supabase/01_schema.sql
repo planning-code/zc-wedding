@@ -23,9 +23,15 @@ create table if not exists profiles (
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer
 set search_path = public as $$
+declare
+  admin_emails text[] := array['karla.carcamo0309@gmail.com', 'ezamorah.90@gmail.com'];
 begin
-  insert into public.profiles (id, email)
-  values (new.id, new.email)
+  insert into public.profiles (id, email, role)
+  values (
+    new.id,
+    new.email,
+    case when new.email = any(admin_emails) then 'super_admin' else 'guest' end
+  )
   on conflict (id) do nothing;
   return new;
 end; $$;

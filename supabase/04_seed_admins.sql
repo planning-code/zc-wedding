@@ -7,6 +7,6 @@
 
 update profiles set role = 'super_admin'
 where email in (
-  'karlita@example.com',
-  'edgardo@example.com'
+  'karla.carcamo0309@gmail.com',
+  'ezamorah.90@gmail.com'
 );
