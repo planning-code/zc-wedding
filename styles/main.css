@@ -772,8 +772,6 @@ ul {
   position: relative;
   min-height: 100vh;
   min-height: 100svh;
-  display: flex;
-  align-items: stretch;
   padding: clamp(var(--s-8), 7vw, var(--s-12)) var(--gutter) clamp(var(--s-10), 8vw, var(--s-14));
   background: var(--black);
   color: var(--paper);
@@ -803,7 +801,6 @@ ul {
 }
 
 .save-date__inner {
-  flex: 1;
   width: 100%;
   max-width: 60rem;
   margin: 0 auto;
@@ -822,11 +819,10 @@ ul {
   line-height: 1.6;
 }
 
-/* Cuerpo (fecha → botón) anclado al fondo de la sección: la mitad superior
+/* Cuerpo (fecha → botón) empujado a la mitad inferior: la mitad superior
    (caras de los novios) queda despejada */
 .save-date__body {
-  margin-top: auto;
-  padding-top: var(--s-8);
+  margin-top: 52vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -855,6 +851,9 @@ ul {
     white-space: normal;
     max-width: 22ch;
     line-height: 1.7;
+  }
+  .save-date__body {
+    margin-top: 44vh;
   }
 }
 
