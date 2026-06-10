@@ -1,9 +1,10 @@
 /* ============================================================
-   Karlita & Edgardo · Autenticación (magic-link) + gates
+   Karlita & Edgardo · Autenticación + gates + RSVP
    - Cliente Supabase compartido
-   - Login por enlace mágico (OTP por correo)
-   - Mostrar/ocultar contenido protegido segun la sesión
-   - Búsqueda en Spotify + guardar sugerencia
+   - Login con Google (OAuth) — usado para sugerir canciones y panel admin
+   - Menú de usuario (esquina superior izquierda)
+   - RSVP ABIERTO: cualquiera confirma sin sesión (RPC submit_rsvp)
+   - Búsqueda en Spotify + guardar sugerencia (requiere sesión)
    Cargado como módulo: import desde esm.sh.
    ============================================================ */
 
@@ -13,6 +14,9 @@ const cfg = window.APP_CONFIG || {};
 export const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
 });
+
+// Token de invitación personalizado (?invite=<uuid>), si existe.
+const INVITE_TOKEN = new URLSearchParams(location.search).get('invite');
 
 // ─────────────────────────────────────────────
 // 1. Gates de autenticación
@@ -31,28 +35,48 @@ function applyAuthState(session) {
     el.hidden = !authed;
   });
 
+  const emailEl = document.getElementById('user-menu-email');
+  if (emailEl) emailEl.textContent = session?.user?.email || '';
+
+  applyAdminLink(session);
   if (authed) prefillRsvp(session);
 }
 
-// Prefill del RSVP con los datos de Google (correo y nombre)
-function prefillRsvp(session) {
-  const emailEl = document.getElementById('email');
-  if (emailEl) emailEl.value = session.user.email || '';
-  const meta = session.user.user_metadata || {};
-  const full = meta.full_name || meta.name || '';
-  if (full) {
-    const parts = full.trim().split(/\s+/);
-    const fn = parts.shift() || '';
-    const ln = parts.join(' ');
-    const fnEl = document.getElementById('first-name');
-    const lnEl = document.getElementById('last-name');
-    if (fnEl && !fnEl.value) fnEl.value = fn;
-    if (lnEl && !lnEl.value) lnEl.value = ln;
+// Muestra el acceso al panel solo si la cuenta es super_admin.
+async function applyAdminLink(session) {
+  const adminLink = document.getElementById('user-menu-admin');
+  if (!adminLink) return;
+  if (!session) { adminLink.hidden = true; return; }
+  try {
+    const { data } = await supabase
+      .from('profiles').select('role').eq('id', session.user.id).single();
+    adminLink.hidden = !(data && data.role === 'super_admin');
+  } catch {
+    adminLink.hidden = true;
   }
 }
 
+// Prefill del RSVP con los datos de Google (correo y nombre), si hay sesión.
+function prefillRsvp(session) {
+  const emailEl = document.getElementById('email');
+  if (emailEl && !emailEl.value) emailEl.value = session.user.email || '';
+  const meta = session.user.user_metadata || {};
+  const full = meta.full_name || meta.name || '';
+  if (full) setNameFields(full);
+}
+
+function setNameFields(full) {
+  const parts = full.trim().split(/\s+/);
+  const fn = parts.shift() || '';
+  const ln = parts.join(' ');
+  const fnEl = document.getElementById('first-name');
+  const lnEl = document.getElementById('last-name');
+  if (fnEl && !fnEl.value) fnEl.value = fn;
+  if (lnEl && !lnEl.value) lnEl.value = ln;
+}
+
 // ─────────────────────────────────────────────
-// 2. Login con Google (OAuth)
+// 2. Login con Google (OAuth) + menú de usuario
 // ─────────────────────────────────────────────
 
 export function wireGoogleLogin(client = supabase) {
@@ -64,7 +88,7 @@ export function wireGoogleLogin(client = supabase) {
       try {
         const { error } = await client.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: `${location.origin}${location.pathname}` },
+          options: { redirectTo: `${location.origin}${location.pathname}${location.search}` },
         });
         if (error) throw error;
         // El navegador redirige a Google; no hace falta más.
@@ -85,8 +109,33 @@ export function wireGoogleLogin(client = supabase) {
   });
 }
 
+function wireUserMenu() {
+  const menu = document.getElementById('user-menu');
+  const trigger = document.getElementById('user-menu-trigger');
+  if (!menu || !trigger) return;
+
+  const setOpen = (open) => {
+    menu.dataset.open = open ? 'true' : 'false';
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setOpen(menu.dataset.open !== 'true');
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target)) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setOpen(false);
+  });
+  menu.querySelectorAll('.user-menu__item').forEach((item) => {
+    item.addEventListener('click', () => setOpen(false));
+  });
+}
+
 // ─────────────────────────────────────────────
-// 3. Búsqueda de canciones + sugerencia
+// 3. Búsqueda de canciones + sugerencia (requiere sesión)
 // ─────────────────────────────────────────────
 
 function wireSongSearch() {
@@ -165,7 +214,8 @@ function escapeHtml(s) {
 }
 
 // ─────────────────────────────────────────────
-// 4. RSVP · guarda en profiles (requiere sesión)
+// 4. RSVP · abierto para todos (RPC submit_rsvp)
+//    Si hay token de invitación, la respuesta queda ligada a esa invitación.
 // ─────────────────────────────────────────────
 
 function wireRsvp() {
@@ -189,58 +239,99 @@ function wireRsvp() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-rsvp-submit');
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { alert('Inicia sesión para confirmar tu asistencia.'); return; }
 
     const fd = new FormData(form);
     const attendance = fd.get('attendance');
     if (!attendance) { alert('Por favor selecciona si podrás asistir.'); return; }
 
-    let patch;
+    let payload;
     if (attendance === 'yes') {
       const fn = (fd.get('first-name') || '').trim();
       const ln = (fd.get('last-name') || '').trim();
       const phone = (fd.get('phone') || '').trim();
+      const email = (fd.get('email') || '').trim();
       const msg = (fd.get('yes-message') || '').trim();
       if (!fn || !ln || !phone) { alert('Por favor completa nombre, apellido y teléfono.'); return; }
-      patch = { full_name: `${fn} ${ln}`, phone, rsvp_status: 'confirmed', rsvp_message: msg || null, rsvp_confirmed_at: new Date().toISOString() };
+      payload = {
+        p_token: INVITE_TOKEN || null,
+        p_status: 'confirmed',
+        p_full_name: `${fn} ${ln}`,
+        p_email: email || null,
+        p_phone: phone,
+        p_message: msg || null,
+        p_plus_one: 0,
+      };
     } else {
       const fn = (fd.get('no-first-name') || '').trim();
       const ln = (fd.get('no-last-name') || '').trim();
       const msg = (fd.get('no-message') || '').trim();
       if (!fn || !ln) { alert('Por favor ingresa tu nombre y apellido.'); return; }
-      patch = { full_name: `${fn} ${ln}`, rsvp_status: 'declined', rsvp_message: msg || null, rsvp_confirmed_at: new Date().toISOString() };
+      payload = {
+        p_token: INVITE_TOKEN || null,
+        p_status: 'declined',
+        p_full_name: `${fn} ${ln}`,
+        p_email: null,
+        p_phone: null,
+        p_message: msg || null,
+        p_plus_one: 0,
+      };
     }
 
     if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
-    const { error } = await supabase.from('profiles').update(patch).eq('id', user.id);
+    const { error } = await supabase.rpc('submit_rsvp', payload);
     if (btn) { btn.disabled = false; btn.textContent = 'Enviar respuesta'; }
-    if (error) { console.error('[RSVP] update:', error); alert('No pudimos guardar tu respuesta. Inténtalo de nuevo.'); return; }
+    if (error) { console.error('[RSVP] submit_rsvp:', error); alert('No pudimos guardar tu respuesta. Inténtalo de nuevo.'); return; }
 
     form.hidden = true;
     if (done) done.hidden = false;
   });
 }
 
-// ─────────────────────────────────────────────
-// 4. Arranque
-// ─────────────────────────────────────────────
-
-supabase.auth.getSession().then(({ data }) => applyAuthState(data.session));
-supabase.auth.onAuthStateChange((_event, session) => applyAuthState(session));
+// Prefill del RSVP a partir del token de invitación:
+// usa el nombre del invitado y, si ya respondió antes, su respuesta previa.
+async function prefillRsvpFromInvite() {
+  if (!INVITE_TOKEN) return;
+  try {
+    const { data: prev } = await supabase.rpc('get_my_rsvp', { p_token: INVITE_TOKEN });
+    const row = Array.isArray(prev) ? prev[0] : prev;
+    if (row && row.full_name) {
+      // Restaurar respuesta previa
+      const isYes = row.status === 'confirmed';
+      const radio = document.querySelector(`input[name="attendance"][value="${isYes ? 'yes' : 'no'}"]`);
+      if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change', { bubbles: true })); }
+      const parts = (row.full_name || '').trim().split(/\s+/);
+      const fn = parts.shift() || '';
+      const ln = parts.join(' ');
+      const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+      if (isYes) {
+        set('first-name', fn); set('last-name', ln);
+        set('email', row.email); set('phone', row.phone); set('yes-message', row.message);
+      } else {
+        set('no-first-name', fn); set('no-last-name', ln); set('no-message', row.message);
+      }
+      return;
+    }
+  } catch (err) {
+    console.error('[RSVP] get_my_rsvp:', err);
+  }
+  // Sin respuesta previa: prefill del nombre desde la invitación.
+  try {
+    const { data: name } = await supabase.rpc('get_invite_name', { token: INVITE_TOKEN });
+    if (name) setNameFields(name);
+  } catch { /* noop */ }
+}
 
 // ─────────────────────────────────────────────
 // 5. Invitación personalizada (?invite=<token>)
 //    Muestra el nombre del invitado en la pantalla de entrada.
 // ─────────────────────────────────────────────
 async function applyInviteName() {
-  const token = new URLSearchParams(location.search).get('invite');
-  if (!token) return;
+  if (!INVITE_TOKEN) return;
   const wrap = document.getElementById('entry-guest');
   const nameEl = document.getElementById('entry-guest-name');
   if (!wrap || !nameEl) return;
   try {
-    const { data, error } = await supabase.rpc('get_invite_name', { token });
+    const { data, error } = await supabase.rpc('get_invite_name', { token: INVITE_TOKEN });
     if (error || !data) return;
     nameEl.textContent = data;
     wrap.hidden = false;
@@ -249,7 +340,16 @@ async function applyInviteName() {
   }
 }
 
+// ─────────────────────────────────────────────
+// 6. Arranque
+// ─────────────────────────────────────────────
+
+supabase.auth.getSession().then(({ data }) => applyAuthState(data.session));
+supabase.auth.onAuthStateChange((_event, session) => applyAuthState(session));
+
 wireGoogleLogin();
+wireUserMenu();
 wireSongSearch();
 wireRsvp();
 applyInviteName();
+prefillRsvpFromInvite();

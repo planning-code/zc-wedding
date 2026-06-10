@@ -2217,6 +2217,323 @@ ul {
 }
 
 /* -----------------------------
+   23. MENÚ DE USUARIO (esquina superior izquierda)
+   Espejo del reproductor de música (esquina superior derecha):
+   mismo vidrio oscuro y borde dorado para cohesión.
+   ----------------------------- */
+
+.user-menu {
+  position: fixed;
+  top: clamp(0.75rem, 2vw, 1.5rem);
+  left: clamp(0.75rem, 2vw, 1.5rem);
+  z-index: 100;
+}
+
+.user-menu__trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--paper);
+  background: rgba(14, 14, 14, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 181, 127, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  transition: border-color var(--t-base) var(--ease-out),
+              box-shadow var(--t-base) var(--ease-out),
+              transform var(--t-fast) var(--ease-out);
+}
+
+.user-menu__trigger:hover {
+  border-color: rgba(212, 181, 127, 0.6);
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.5);
+}
+
+.user-menu__trigger:active {
+  transform: scale(0.95);
+}
+
+/* Punto dorado: indica que hay sesión activa */
+.user-menu__trigger::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  border: 2px solid #0A0A0A;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity var(--t-fast) var(--ease-out),
+              transform var(--t-fast) var(--ease-out);
+}
+
+body[data-authed="true"] .user-menu__trigger::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.user-menu__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 240px;
+  padding: var(--s-2);
+  background: rgba(14, 14, 14, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 181, 127, 0.28);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  transform-origin: top left;
+  opacity: 0;
+  transform: scale(0.96);
+  visibility: hidden;
+  transition: opacity var(--t-fast) var(--ease-out),
+              transform var(--t-fast) var(--ease-out),
+              visibility 0s linear var(--t-fast);
+}
+
+.user-menu[data-open="true"] .user-menu__panel {
+  opacity: 1;
+  transform: scale(1);
+  visibility: visible;
+  transition: opacity var(--t-base) var(--ease-out),
+              transform var(--t-base) var(--ease-out);
+}
+
+.user-menu__email {
+  display: block;
+  padding: var(--s-2) var(--s-3) var(--s-3);
+  font-size: var(--type-caption);
+  color: var(--on-photo-muted);
+  word-break: break-all;
+  border-bottom: 1px solid rgba(212, 181, 127, 0.15);
+  margin-bottom: var(--s-1);
+}
+
+.user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: 0.7rem var(--s-3);
+  border-radius: 7px;
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: var(--type-small);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-align: left;
+  transition: background-color var(--t-fast) var(--ease);
+}
+
+.user-menu__item:hover {
+  background: rgba(212, 181, 127, 0.12);
+}
+
+.user-menu__item:active {
+  transform: scale(0.98);
+}
+
+.user-menu__item svg {
+  flex-shrink: 0;
+}
+
+.user-menu__item--admin {
+  color: var(--gold-light);
+}
+
+.user-menu__item--admin svg {
+  color: var(--gold-light);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .user-menu__item { transition: background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-out); }
+}
+
+/* -----------------------------
+   24. LINK A PLAYLIST (sección música, con sesión)
+   ----------------------------- */
+
+.playlist-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(212, 181, 127, 0.06);
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wide);
+  transition: background-color var(--t-fast) var(--ease-out),
+              transform var(--t-fast) var(--ease-out);
+}
+
+.playlist-link:hover {
+  background: rgba(212, 181, 127, 0.16);
+}
+
+.playlist-link:active {
+  transform: scale(0.99);
+}
+
+.playlist-link svg {
+  color: var(--gold-dark);
+  flex-shrink: 0;
+}
+
+.playlist-link__arrow {
+  margin-left: var(--s-2);
+  color: var(--gold-dark);
+}
+
+.music-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin: var(--s-6) 0;
+  color: var(--grey-500);
+  font-size: var(--type-caption);
+  font-style: italic;
+}
+
+.music-divider::before,
+.music-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--grey-200);
+}
+
+.form-optional {
+  color: var(--grey-300);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* -----------------------------
+   25. PÁGINA DE PLAYLIST (playlist.html)
+   ----------------------------- */
+
+.playlist-page {
+  background: var(--paper);
+  min-height: 100vh;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: clamp(var(--s-12), 10vw, var(--s-16)) var(--gutter) var(--s-16);
+}
+
+.playlist-page__head {
+  text-align: center;
+  margin-bottom: var(--s-10);
+}
+
+.playlist-page__back {
+  display: inline-block;
+  margin-bottom: var(--s-8);
+  font-size: var(--type-small);
+  color: var(--grey-500);
+  letter-spacing: var(--tracking-wide);
+  transition: color var(--t-fast) var(--ease);
+}
+
+.playlist-page__back:hover {
+  color: var(--gold-dark);
+}
+
+.playlist-embed {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  margin-bottom: var(--s-14);
+}
+
+.playlist-embed iframe {
+  display: block;
+  border: 0;
+}
+
+.playlist-approved .section__head {
+  margin-bottom: var(--s-8);
+}
+
+.playlist-songs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s-3);
+}
+
+.playlist-song {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3);
+  border: 1px solid var(--grey-200);
+  border-radius: 8px;
+  background: var(--white);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: playlist-fade 360ms var(--ease-out) forwards;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes playlist-fade {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.playlist-song__art {
+  width: 56px;
+  height: 56px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--grey-100);
+  flex-shrink: 0;
+}
+
+.playlist-song__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.playlist-song__name {
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-song__artist {
+  font-size: var(--type-small);
+  color: var(--grey-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-empty {
+  text-align: center;
+  color: var(--grey-500);
+  font-style: italic;
+  padding: var(--s-10) 0;
+}
+
+@media (max-width: 480px) {
+  .playlist-songs { grid-template-columns: 1fr; }
+}
+
+/* -----------------------------
    22. MOVIMIENTO REDUCIDO
    ----------------------------- */
 

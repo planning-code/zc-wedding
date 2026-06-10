@@ -19,7 +19,6 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let CURRENT_UID = null;
-let profilesCache = [];
 let photosCache = [];
 
 // ─────────────────────────────────────────────
@@ -118,15 +117,28 @@ function wireNav() {
 function closeSidebar() { window.closeSidebar?.(); }
 
 // ─────────────────────────────────────────────
-// DATOS: PROFILES (invitados + RSVP)
+// DATOS: INVITADOS (invites + su RSVP) y CONFIRMACIONES (rsvps)
 // ─────────────────────────────────────────────
-async function loadProfiles() {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, email, full_name, phone, role, rsvp_status, rsvp_message, plus_one_count, dietary_restrictions, rsvp_confirmed_at, created_at')
+let guestsCache = [];   // invites + su rsvp ligado
+let rsvpsCache = [];     // todas las respuestas (incluye libres sin invite)
+
+async function loadGuests() {
+  // Invitados = la lista de invitaciones, con su respuesta (0 o 1 por unicidad).
+  const { data: invites, error } = await supabase
+    .from('invites')
+    .select('id, first_name, last_name, phone, created_at, rsvps(id, full_name, email, phone, status, message, plus_one_count, source, updated_at)')
     .order('created_at', { ascending: false });
-  if (error) { console.error('[Admin] profiles:', error); toast('Error al cargar invitados'); return; }
-  profilesCache = data || [];
+  if (error) { console.error('[Admin] invites+rsvps:', error); toast('Error al cargar invitados'); return; }
+  guestsCache = (invites || []).map((i) => ({ ...i, rsvp: (i.rsvps && i.rsvps[0]) || null }));
+
+  // Confirmaciones = todas las respuestas, incluyendo las libres (sin invitación).
+  const { data: rsvps, error: e2 } = await supabase
+    .from('rsvps')
+    .select('id, invite_id, full_name, email, phone, status, message, plus_one_count, source, updated_at')
+    .order('updated_at', { ascending: false });
+  if (e2) { console.error('[Admin] rsvps:', e2); }
+  rsvpsCache = rsvps || [];
+
   renderGuests();
   renderRsvp();
 }
@@ -134,54 +146,110 @@ async function loadProfiles() {
 const STATUS_LABEL = { confirmed: 'Confirmado', pending: 'Pendiente', declined: 'Declinó' };
 const STATUS_CLASS = { confirmed: 'badge--success', pending: 'badge--warning', declined: 'badge--muted' };
 
+function guestName(g) {
+  return (g.rsvp && g.rsvp.full_name) || `${g.first_name} ${g.last_name}`.trim();
+}
+function guestStatus(g) { return g.rsvp ? g.rsvp.status : 'pending'; }
+
 function renderGuests() {
   const q = (el('search-guests')?.value || '').toLowerCase();
-  const rows = profilesCache.filter((p) =>
-    !q || (p.full_name || '').toLowerCase().includes(q) || (p.email || '').toLowerCase().includes(q));
+  const rows = guestsCache.filter((g) =>
+    !q || guestName(g).toLowerCase().includes(q) || (g.rsvp?.email || '').toLowerCase().includes(q));
 
-  el('kpi-total').textContent = profilesCache.length;
-  el('kpi-confirmed').textContent = profilesCache.filter((p) => p.rsvp_status === 'confirmed').length;
-  el('kpi-pending').textContent = profilesCache.filter((p) => p.rsvp_status === 'pending').length;
-  el('kpi-declined').textContent = profilesCache.filter((p) => p.rsvp_status === 'declined').length;
-  el('kpi-seats').textContent = profilesCache
-    .filter((p) => p.rsvp_status === 'confirmed')
-    .reduce((sum, p) => sum + 1 + (p.plus_one_count || 0), 0);
+  const confirmed = guestsCache.filter((g) => guestStatus(g) === 'confirmed');
+  el('kpi-total').textContent = guestsCache.length;
+  el('kpi-confirmed').textContent = confirmed.length;
+  el('kpi-pending').textContent = guestsCache.filter((g) => guestStatus(g) === 'pending').length;
+  el('kpi-declined').textContent = guestsCache.filter((g) => guestStatus(g) === 'declined').length;
+  el('kpi-seats').textContent = confirmed.reduce((sum, g) => sum + 1 + (g.rsvp?.plus_one_count || 0), 0);
 
   const tbody = el('guests-tbody');
-  tbody.innerHTML = rows.map((p) => `
-    <tr>
-      <td>${esc(p.full_name || '—')}</td>
-      <td>${esc(p.email)}</td>
-      <td>${esc(p.phone || '—')}</td>
-      <td>${p.plus_one_count || 0}</td>
-      <td><span class="badge ${STATUS_CLASS[p.rsvp_status] || ''}">${STATUS_LABEL[p.rsvp_status] || p.rsvp_status}</span></td>
-      <td>${p.role === 'super_admin' ? '<span class="badge badge--gold">Admin</span>' : 'Invitado'}</td>
-    </tr>`).join('');
+  tbody.innerHTML = rows.map((g) => {
+    const status = guestStatus(g);
+    const plus = g.rsvp?.plus_one_count || 0;
+    const phone = g.rsvp?.phone || g.phone || '—';
+    const opt = (v, label) => `<option value="${v}"${status === v ? ' selected' : ''}>${label}</option>`;
+    return `
+    <tr data-invite="${g.id}">
+      <td>${esc(guestName(g))}</td>
+      <td>${esc(phone)}</td>
+      <td>${esc(g.rsvp?.email || '—')}</td>
+      <td>
+        <input class="guest-edit__num" type="number" min="0" max="20" value="${plus}"
+               data-plus aria-label="Acompañantes de ${esc(guestName(g))}">
+      </td>
+      <td>
+        <select class="guest-edit__status guest-edit__status--${status}" data-status aria-label="Estado de ${esc(guestName(g))}">
+          ${opt('pending', 'Pendiente')}
+          ${opt('confirmed', 'Confirmado')}
+          ${opt('declined', 'Declinó')}
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
   el('guests-empty').hidden = rows.length > 0;
 }
 
+// Edición manual de asistencia (super admin)
+async function setGuestRsvp(invite, status, plusOne) {
+  const existing = invite.rsvp;
+  if (status === 'pending') {
+    if (existing) {
+      const { error } = await supabase.from('rsvps').delete().eq('id', existing.id);
+      if (error) { console.error('[Admin] borrar rsvp:', error); toast('No se pudo actualizar'); return; }
+    }
+  } else {
+    const row = {
+      invite_id: invite.id,
+      full_name: existing?.full_name || `${invite.first_name} ${invite.last_name}`.trim(),
+      email: existing?.email ?? null,
+      phone: existing?.phone ?? invite.phone ?? null,
+      status,
+      message: existing?.message ?? null,
+      plus_one_count: Math.max(0, plusOne || 0),
+      source: 'admin',
+    };
+    const res = existing
+      ? await supabase.from('rsvps').update(row).eq('id', existing.id)
+      : await supabase.from('rsvps').insert(row);
+    if (res.error) { console.error('[Admin] guardar rsvp:', res.error); toast('No se pudo actualizar'); return; }
+  }
+  toast('Asistencia actualizada');
+  loadGuests();
+}
+
+el('guests-tbody')?.addEventListener('change', (e) => {
+  const tr = e.target.closest('tr[data-invite]');
+  if (!tr) return;
+  const invite = guestsCache.find((g) => g.id === tr.dataset.invite);
+  if (!invite) return;
+  const status = tr.querySelector('[data-status]')?.value || 'pending';
+  const plus = parseInt(tr.querySelector('[data-plus]')?.value || '0', 10);
+  setGuestRsvp(invite, status, plus);
+});
+
 function renderRsvp() {
   const q = (el('search-rsvp')?.value || '').toLowerCase();
-  const responded = profilesCache.filter((p) => p.rsvp_status !== 'pending');
-  const rows = responded.filter((p) =>
-    !q || (p.full_name || '').toLowerCase().includes(q) || (p.email || '').toLowerCase().includes(q));
+  const rows = rsvpsCache.filter((r) =>
+    !q || (r.full_name || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q));
 
-  el('rsvp-confirmed').textContent = profilesCache.filter((p) => p.rsvp_status === 'confirmed').length;
-  el('rsvp-pending').textContent = profilesCache.filter((p) => p.rsvp_status === 'pending').length;
-  el('rsvp-declined').textContent = profilesCache.filter((p) => p.rsvp_status === 'declined').length;
-  el('rsvp-plus-ones').textContent = profilesCache
-    .filter((p) => p.rsvp_status === 'confirmed')
-    .reduce((sum, p) => sum + (p.plus_one_count || 0), 0);
+  el('rsvp-confirmed').textContent = rsvpsCache.filter((r) => r.status === 'confirmed').length;
+  el('rsvp-pending').textContent = guestsCache.filter((g) => guestStatus(g) === 'pending').length;
+  el('rsvp-declined').textContent = rsvpsCache.filter((r) => r.status === 'declined').length;
+  el('rsvp-plus-ones').textContent = rsvpsCache
+    .filter((r) => r.status === 'confirmed')
+    .reduce((sum, r) => sum + (r.plus_one_count || 0), 0);
 
   const tbody = el('rsvp-tbody');
-  tbody.innerHTML = rows.map((p) => `
+  tbody.innerHTML = rows.map((r) => `
     <tr>
-      <td>${esc(p.full_name || '—')}</td>
-      <td>${esc(p.email)}</td>
-      <td><span class="badge ${STATUS_CLASS[p.rsvp_status] || ''}">${STATUS_LABEL[p.rsvp_status] || p.rsvp_status}</span></td>
-      <td>${p.plus_one_count || 0}</td>
-      <td>${esc(p.dietary_restrictions || p.rsvp_message || '—')}</td>
-      <td>${p.rsvp_confirmed_at ? new Date(p.rsvp_confirmed_at).toLocaleDateString('es-SV') : '—'}</td>
+      <td>${esc(r.full_name || '—')}</td>
+      <td>${esc(r.email || '—')}</td>
+      <td>${esc(r.phone || '—')}</td>
+      <td><span class="badge ${STATUS_CLASS[r.status] || ''}">${STATUS_LABEL[r.status] || r.status}</span></td>
+      <td>${r.plus_one_count || 0}</td>
+      <td>${esc(r.message || '—')}</td>
+      <td>${r.updated_at ? new Date(r.updated_at).toLocaleDateString('es-SV') : '—'}</td>
     </tr>`).join('');
   el('rsvp-empty').hidden = rows.length > 0;
 }
@@ -200,14 +268,13 @@ function exportCsv(filename, header, rows) {
 
 el('btn-export-csv')?.addEventListener('click', () => {
   exportCsv('invitados.csv',
-    ['Nombre', 'Correo', 'Telefono', 'Acompanantes', 'RSVP', 'Rol'],
-    profilesCache.map((p) => [p.full_name, p.email, p.phone, p.plus_one_count || 0, p.rsvp_status, p.role]));
+    ['Invitado', 'Telefono', 'Correo', 'Acompanantes', 'Estado'],
+    guestsCache.map((g) => [guestName(g), g.rsvp?.phone || g.phone || '', g.rsvp?.email || '', g.rsvp?.plus_one_count || 0, guestStatus(g)]));
 });
 el('btn-export-rsvp')?.addEventListener('click', () => {
   exportCsv('confirmaciones.csv',
-    ['Nombre', 'Correo', 'Estado', 'Acompanantes', 'Mensaje', 'Fecha'],
-    profilesCache.filter((p) => p.rsvp_status !== 'pending')
-      .map((p) => [p.full_name, p.email, p.rsvp_status, p.plus_one_count || 0, p.rsvp_message, p.rsvp_confirmed_at]));
+    ['Nombre', 'Correo', 'Telefono', 'Estado', 'Acompanantes', 'Mensaje', 'Fecha'],
+    rsvpsCache.map((r) => [r.full_name, r.email, r.phone, r.status, r.plus_one_count || 0, r.message, r.updated_at]));
 });
 
 // ─────────────────────────────────────────────
@@ -411,7 +478,7 @@ async function startApp(profile) {
   if (badge && profile) badge.textContent = profile.full_name || 'Super Admin';
   wireNav();
   showSection('invitados');
-  await Promise.all([loadProfiles(), loadMusic(), loadGallery(), loadInvites()]);
+  await Promise.all([loadGuests(), loadMusic(), loadGallery(), loadInvites()]);
 }
 
 async function gateCheck() {

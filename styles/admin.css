@@ -387,6 +387,28 @@ table { border-collapse: collapse; width: 100%; }
 .col-actions { text-align: right; }
 .row-actions { display: flex; gap: .375rem; justify-content: flex-end; }
 
+/* Edición inline de asistencia (super admin) */
+.guest-edit__num {
+  width: 4.5rem;
+  padding: .4rem .55rem;
+  font-size: .875rem;
+}
+.guest-edit__status {
+  padding: .4rem 2rem .4rem .65rem;
+  font-size: .8125rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%239A9488' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .65rem center;
+}
+.guest-edit__status--confirmed { color: var(--success); border-color: rgba(39,174,96,.4); }
+.guest-edit__status--declined  { color: var(--text-2); }
+.guest-edit__status--pending   { color: var(--warning); border-color: rgba(243,156,18,.4); }
+
 .table-empty {
   padding: 3rem 1.5rem;
   text-align: center;
