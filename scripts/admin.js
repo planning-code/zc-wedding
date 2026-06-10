@@ -84,6 +84,7 @@ const SECTION_TITLES = {
   rsvp: 'Confirmaciones',
   musica: 'Música',
   galeria: 'Galería',
+  invitaciones: 'Invitaciones',
 };
 
 function showSection(id) {
@@ -318,6 +319,87 @@ el('search-gallery')?.addEventListener('input', renderGallery);
 el('gallery-sort')?.addEventListener('change', renderGallery);
 
 // ─────────────────────────────────────────────
+// DATOS: INVITACIONES (links personalizados)
+// ─────────────────────────────────────────────
+let invitesCache = [];
+
+function inviteLink(id) {
+  return `${location.origin}/?invite=${id}`;
+}
+
+function whatsappLink(inv) {
+  const name = `${inv.first_name} ${inv.last_name}`.trim();
+  const msg =
+    `Hola ${name}, Karlita y Edgardo te invitan a celebrar su boda.\n` +
+    `Domingo 16 de agosto de 2026 · 4:00 PM · Hotel Hilton, San Salvador.\n\n` +
+    `Abre tu invitación aquí:\n${inviteLink(inv.id)}`;
+  const digits = (inv.phone || '').replace(/\D/g, '');
+  return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
+}
+
+async function loadInvites() {
+  const { data, error } = await supabase
+    .from('invites')
+    .select('id, first_name, last_name, phone, created_at')
+    .order('created_at', { ascending: false });
+  if (error) { console.error('[Admin] invites:', error); toast('Error al cargar invitaciones'); return; }
+  invitesCache = data || [];
+  renderInvites();
+}
+
+function renderInvites() {
+  const q = (el('search-invites')?.value || '').toLowerCase();
+  const rows = invitesCache.filter((i) =>
+    !q || `${i.first_name} ${i.last_name}`.toLowerCase().includes(q));
+
+  const tbody = el('invites-tbody');
+  tbody.innerHTML = rows.map((i) => `
+    <tr>
+      <td>${esc(i.first_name)} ${esc(i.last_name)}</td>
+      <td>${esc(i.phone || '—')}</td>
+      <td><code class="invite-link">${esc(inviteLink(i.id))}</code></td>
+      <td class="col-actions">
+        <button class="btn btn--ghost btn--sm" data-copy="${esc(inviteLink(i.id))}">Copiar</button>
+        <a class="btn btn--gold btn--sm" href="${esc(whatsappLink(i))}" target="_blank" rel="noopener">WhatsApp</a>
+      </td>
+    </tr>`).join('');
+  el('invites-empty').hidden = rows.length > 0;
+}
+
+el('search-invites')?.addEventListener('input', renderInvites);
+
+el('invite-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const first = el('inv-first').value.trim();
+  const last = el('inv-last').value.trim();
+  const phone = el('inv-phone').value.trim();
+  if (!first || !last) { toast('Nombre y apellido son obligatorios'); return; }
+
+  const btn = el('btn-generate-invite');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generando…'; }
+  const { error } = await supabase.from('invites').insert({
+    first_name: first, last_name: last, phone: phone || null, created_by: CURRENT_UID,
+  });
+  if (btn) { btn.disabled = false; btn.textContent = 'Generar link'; }
+  if (error) { console.error('[Admin] crear invite:', error); toast('No se pudo generar el link'); return; }
+
+  el('invite-form').reset();
+  toast('Invitación generada');
+  loadInvites();
+});
+
+el('invites-tbody')?.addEventListener('click', async (e) => {
+  const copyBtn = e.target.closest('[data-copy]');
+  if (!copyBtn) return;
+  try {
+    await navigator.clipboard.writeText(copyBtn.dataset.copy);
+    toast('Link copiado');
+  } catch {
+    toast('No se pudo copiar');
+  }
+});
+
+// ─────────────────────────────────────────────
 // ARRANQUE
 // ─────────────────────────────────────────────
 let started = false;
@@ -329,7 +411,7 @@ async function startApp(profile) {
   if (badge && profile) badge.textContent = profile.full_name || 'Super Admin';
   wireNav();
   showSection('invitados');
-  await Promise.all([loadProfiles(), loadMusic(), loadGallery()]);
+  await Promise.all([loadProfiles(), loadMusic(), loadGallery(), loadInvites()]);
 }
 
 async function gateCheck() {

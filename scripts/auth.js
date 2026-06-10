@@ -30,6 +30,25 @@ function applyAuthState(session) {
   document.querySelectorAll('[data-auth-protected]').forEach((el) => {
     el.hidden = !authed;
   });
+
+  if (authed) prefillRsvp(session);
+}
+
+// Prefill del RSVP con los datos de Google (correo y nombre)
+function prefillRsvp(session) {
+  const emailEl = document.getElementById('email');
+  if (emailEl) emailEl.value = session.user.email || '';
+  const meta = session.user.user_metadata || {};
+  const full = meta.full_name || meta.name || '';
+  if (full) {
+    const parts = full.trim().split(/\s+/);
+    const fn = parts.shift() || '';
+    const ln = parts.join(' ');
+    const fnEl = document.getElementById('first-name');
+    const lnEl = document.getElementById('last-name');
+    if (fnEl && !fnEl.value) fnEl.value = fn;
+    if (lnEl && !lnEl.value) lnEl.value = ln;
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -146,11 +165,91 @@ function escapeHtml(s) {
 }
 
 // ─────────────────────────────────────────────
+// 4. RSVP · guarda en profiles (requiere sesión)
+// ─────────────────────────────────────────────
+
+function wireRsvp() {
+  const form = document.getElementById('rsvp-form');
+  if (!form) return;
+  const yesFields = document.getElementById('rsvp-yes-fields');
+  const noFields = document.getElementById('rsvp-no-fields');
+  const done = document.getElementById('rsvp-done');
+
+  const setReq = (id, on) => { const el = document.getElementById(id); if (el) el.required = on; };
+
+  form.addEventListener('change', (e) => {
+    if (e.target.name !== 'attendance') return;
+    const isYes = e.target.value === 'yes';
+    if (yesFields) yesFields.style.display = isYes ? 'block' : 'none';
+    if (noFields) noFields.style.display = isYes ? 'none' : 'block';
+    setReq('first-name', isYes); setReq('last-name', isYes); setReq('phone', isYes);
+    setReq('no-first-name', !isYes); setReq('no-last-name', !isYes);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-rsvp-submit');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { alert('Inicia sesión para confirmar tu asistencia.'); return; }
+
+    const fd = new FormData(form);
+    const attendance = fd.get('attendance');
+    if (!attendance) { alert('Por favor selecciona si podrás asistir.'); return; }
+
+    let patch;
+    if (attendance === 'yes') {
+      const fn = (fd.get('first-name') || '').trim();
+      const ln = (fd.get('last-name') || '').trim();
+      const phone = (fd.get('phone') || '').trim();
+      const msg = (fd.get('yes-message') || '').trim();
+      if (!fn || !ln || !phone) { alert('Por favor completa nombre, apellido y teléfono.'); return; }
+      patch = { full_name: `${fn} ${ln}`, phone, rsvp_status: 'confirmed', rsvp_message: msg || null, rsvp_confirmed_at: new Date().toISOString() };
+    } else {
+      const fn = (fd.get('no-first-name') || '').trim();
+      const ln = (fd.get('no-last-name') || '').trim();
+      const msg = (fd.get('no-message') || '').trim();
+      if (!fn || !ln) { alert('Por favor ingresa tu nombre y apellido.'); return; }
+      patch = { full_name: `${fn} ${ln}`, rsvp_status: 'declined', rsvp_message: msg || null, rsvp_confirmed_at: new Date().toISOString() };
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+    const { error } = await supabase.from('profiles').update(patch).eq('id', user.id);
+    if (btn) { btn.disabled = false; btn.textContent = 'Enviar respuesta'; }
+    if (error) { console.error('[RSVP] update:', error); alert('No pudimos guardar tu respuesta. Inténtalo de nuevo.'); return; }
+
+    form.hidden = true;
+    if (done) done.hidden = false;
+  });
+}
+
+// ─────────────────────────────────────────────
 // 4. Arranque
 // ─────────────────────────────────────────────
 
 supabase.auth.getSession().then(({ data }) => applyAuthState(data.session));
 supabase.auth.onAuthStateChange((_event, session) => applyAuthState(session));
 
+// ─────────────────────────────────────────────
+// 5. Invitación personalizada (?invite=<token>)
+//    Muestra el nombre del invitado en la pantalla de entrada.
+// ─────────────────────────────────────────────
+async function applyInviteName() {
+  const token = new URLSearchParams(location.search).get('invite');
+  if (!token) return;
+  const wrap = document.getElementById('entry-guest');
+  const nameEl = document.getElementById('entry-guest-name');
+  if (!wrap || !nameEl) return;
+  try {
+    const { data, error } = await supabase.rpc('get_invite_name', { token });
+    if (error || !data) return;
+    nameEl.textContent = data;
+    wrap.hidden = false;
+  } catch (err) {
+    console.error('[Invite] get_invite_name:', err);
+  }
+}
+
 wireGoogleLogin();
 wireSongSearch();
+wireRsvp();
+applyInviteName();

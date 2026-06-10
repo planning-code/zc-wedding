@@ -716,6 +716,21 @@ table { border-collapse: collapse; width: 100%; }
 }
 .sidebar-backdrop.is-visible { opacity: 1; visibility: visible; }
 
+/* ─── Invitaciones ─── */
+.admin-card--form { max-width: 520px; margin-bottom: 1.5rem; }
+.admin-card__hint {
+  color: var(--text-2);
+  font-size: .8125rem;
+  line-height: 1.5;
+  margin: -.25rem 0 1rem;
+}
+.invite-link {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .75rem;
+  color: var(--gold-light);
+  word-break: break-all;
+}
+
 /* ─── Selector de orden ─── */
 .admin-sort {
   display: inline-flex;
