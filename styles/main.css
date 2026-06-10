@@ -2017,6 +2017,7 @@ ul {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: var(--s-4);
   padding-bottom: var(--s-8);
   border-bottom: 1px solid var(--grey-200);
@@ -2041,6 +2042,7 @@ ul {
 }
 
 .gallery-grid__item {
+  position: relative;
   aspect-ratio: 1;
   overflow: hidden;
   background: var(--grey-100);
@@ -2051,6 +2053,24 @@ ul {
   height: 100%;
   object-fit: cover;
 }
+
+.gallery-delete {
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: rgba(10,10,10,0.75);
+  color: #fff;
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease-out), background var(--t-fast);
+}
+.gallery-grid__item:hover .gallery-delete { opacity: 1; }
+.gallery-delete:hover { background: #c0392b; }
 
 .gallery-empty {
   text-align: center;
@@ -2264,26 +2284,14 @@ ul {
   transform: scale(0.95);
 }
 
-/* Punto dorado: indica que hay sesión activa */
-.user-menu__trigger::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--gold-light);
-  border: 2px solid #0A0A0A;
-  opacity: 0;
-  transform: scale(0.5);
-  transition: opacity var(--t-fast) var(--ease-out),
-              transform var(--t-fast) var(--ease-out);
+/* Silueta dorada cuando hay sesión activa */
+.user-menu__trigger svg {
+  transition: color var(--t-base) var(--ease-out);
+  color: var(--grey-300);
 }
 
-body[data-authed="true"] .user-menu__trigger::after {
-  opacity: 1;
-  transform: scale(1);
+body[data-authed="true"] .user-menu__trigger svg {
+  color: var(--gold-light);
 }
 
 .user-menu__panel {

@@ -1,9 +1,10 @@
 /* ============================================================
    Karlita & Edgardo · Panel de administración (Supabase)
    - Acceso solo para super_admin (Google OAuth + check de rol)
-   - Invitados / RSVP desde profiles
+   - Invitados: lista unificada con filtros y datos de RSVP
    - Música: aprobar / rechazar sugerencias
-   - Galería: todas las fotos de todos los invitados
+   - Galería: todas las fotos + eliminar
+   - Invitaciones Personalizadas: generar, editar, eliminar
    ============================================================ */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -79,11 +80,9 @@ el('btn-logout')?.addEventListener('click', async () => {
 // ─────────────────────────────────────────────
 const SECTION_TITLES = {
   invitados: 'Invitados',
-  detalles: 'Detalles del evento',
-  rsvp: 'Confirmaciones',
   musica: 'Música',
   galeria: 'Galería',
-  invitaciones: 'Invitaciones',
+  invitaciones: 'Invitaciones Personalizadas',
 };
 
 function showSection(id) {
@@ -102,7 +101,6 @@ function wireNav() {
   document.querySelectorAll('.sidebar__link[data-section]').forEach((a) => {
     a.addEventListener('click', (e) => { e.preventDefault(); showSection(a.dataset.section); });
   });
-  // Sidebar móvil
   const sidebar = el('sidebar');
   const menuToggle = el('menu-toggle');
   const backdrop = document.createElement('div');
@@ -117,30 +115,19 @@ function wireNav() {
 function closeSidebar() { window.closeSidebar?.(); }
 
 // ─────────────────────────────────────────────
-// DATOS: INVITADOS (invites + su RSVP) y CONFIRMACIONES (rsvps)
+// DATOS: INVITADOS (invites + su RSVP)
 // ─────────────────────────────────────────────
-let guestsCache = [];   // invites + su rsvp ligado
-let rsvpsCache = [];     // todas las respuestas (incluye libres sin invite)
+let guestsCache = [];
+let guestFilter = 'all';
 
 async function loadGuests() {
-  // Invitados = la lista de invitaciones, con su respuesta (0 o 1 por unicidad).
   const { data: invites, error } = await supabase
     .from('invites')
-    .select('id, first_name, last_name, phone, created_at, rsvps(id, full_name, email, phone, status, message, plus_one_count, source, updated_at)')
+    .select('id, first_name, last_name, phone, max_companions, created_at, rsvps(id, full_name, email, phone, status, message, plus_one_count, source, updated_at)')
     .order('created_at', { ascending: false });
   if (error) { console.error('[Admin] invites+rsvps:', error); toast('Error al cargar invitados'); return; }
   guestsCache = (invites || []).map((i) => ({ ...i, rsvp: (i.rsvps && i.rsvps[0]) || null }));
-
-  // Confirmaciones = todas las respuestas, incluyendo las libres (sin invitación).
-  const { data: rsvps, error: e2 } = await supabase
-    .from('rsvps')
-    .select('id, invite_id, full_name, email, phone, status, message, plus_one_count, source, updated_at')
-    .order('updated_at', { ascending: false });
-  if (e2) { console.error('[Admin] rsvps:', e2); }
-  rsvpsCache = rsvps || [];
-
   renderGuests();
-  renderRsvp();
 }
 
 const STATUS_LABEL = { confirmed: 'Confirmado', pending: 'Pendiente', declined: 'Declinó' };
@@ -153,8 +140,9 @@ function guestStatus(g) { return g.rsvp ? g.rsvp.status : 'pending'; }
 
 function renderGuests() {
   const q = (el('search-guests')?.value || '').toLowerCase();
-  const rows = guestsCache.filter((g) =>
+  let rows = guestsCache.filter((g) =>
     !q || guestName(g).toLowerCase().includes(q) || (g.rsvp?.email || '').toLowerCase().includes(q));
+  if (guestFilter !== 'all') rows = rows.filter((g) => guestStatus(g) === guestFilter);
 
   const confirmed = guestsCache.filter((g) => guestStatus(g) === 'confirmed');
   el('kpi-total').textContent = guestsCache.length;
@@ -164,13 +152,15 @@ function renderGuests() {
   el('kpi-seats').textContent = confirmed.reduce((sum, g) => sum + 1 + (g.rsvp?.plus_one_count || 0), 0);
 
   const tbody = el('guests-tbody');
-  tbody.innerHTML = rows.map((g) => {
+  tbody.innerHTML = rows.map((g, idx) => {
     const status = guestStatus(g);
     const plus = g.rsvp?.plus_one_count || 0;
     const phone = g.rsvp?.phone || g.phone || '—';
+    const fecha = g.rsvp?.updated_at ? new Date(g.rsvp.updated_at).toLocaleDateString('es-SV') : '—';
     const opt = (v, label) => `<option value="${v}"${status === v ? ' selected' : ''}>${label}</option>`;
     return `
     <tr data-invite="${g.id}">
+      <td class="col-num">${idx + 1}</td>
       <td>${esc(guestName(g))}</td>
       <td>${esc(phone)}</td>
       <td>${esc(g.rsvp?.email || '—')}</td>
@@ -185,10 +175,23 @@ function renderGuests() {
           ${opt('declined', 'Declinó')}
         </select>
       </td>
+      <td>${esc(g.rsvp?.message || '—')}</td>
+      <td>${fecha}</td>
     </tr>`;
   }).join('');
   el('guests-empty').hidden = rows.length > 0;
 }
+
+// Filtros de estado
+el('guest-filters')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-filter]');
+  if (!btn) return;
+  guestFilter = btn.dataset.filter;
+  el('guest-filters').querySelectorAll('.filter-tab').forEach((b) => {
+    b.classList.toggle('filter-tab--active', b.dataset.filter === guestFilter);
+  });
+  renderGuests();
+});
 
 // Edición manual de asistencia (super admin)
 async function setGuestRsvp(invite, status, plusOne) {
@@ -228,34 +231,7 @@ el('guests-tbody')?.addEventListener('change', (e) => {
   setGuestRsvp(invite, status, plus);
 });
 
-function renderRsvp() {
-  const q = (el('search-rsvp')?.value || '').toLowerCase();
-  const rows = rsvpsCache.filter((r) =>
-    !q || (r.full_name || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q));
-
-  el('rsvp-confirmed').textContent = rsvpsCache.filter((r) => r.status === 'confirmed').length;
-  el('rsvp-pending').textContent = guestsCache.filter((g) => guestStatus(g) === 'pending').length;
-  el('rsvp-declined').textContent = rsvpsCache.filter((r) => r.status === 'declined').length;
-  el('rsvp-plus-ones').textContent = rsvpsCache
-    .filter((r) => r.status === 'confirmed')
-    .reduce((sum, r) => sum + (r.plus_one_count || 0), 0);
-
-  const tbody = el('rsvp-tbody');
-  tbody.innerHTML = rows.map((r) => `
-    <tr>
-      <td>${esc(r.full_name || '—')}</td>
-      <td>${esc(r.email || '—')}</td>
-      <td>${esc(r.phone || '—')}</td>
-      <td><span class="badge ${STATUS_CLASS[r.status] || ''}">${STATUS_LABEL[r.status] || r.status}</span></td>
-      <td>${r.plus_one_count || 0}</td>
-      <td>${esc(r.message || '—')}</td>
-      <td>${r.updated_at ? new Date(r.updated_at).toLocaleDateString('es-SV') : '—'}</td>
-    </tr>`).join('');
-  el('rsvp-empty').hidden = rows.length > 0;
-}
-
 el('search-guests')?.addEventListener('input', renderGuests);
-el('search-rsvp')?.addEventListener('input', renderRsvp);
 
 function exportCsv(filename, header, rows) {
   const csv = [header, ...rows].map((r) =>
@@ -268,13 +244,12 @@ function exportCsv(filename, header, rows) {
 
 el('btn-export-csv')?.addEventListener('click', () => {
   exportCsv('invitados.csv',
-    ['Invitado', 'Telefono', 'Correo', 'Acompanantes', 'Estado'],
-    guestsCache.map((g) => [guestName(g), g.rsvp?.phone || g.phone || '', g.rsvp?.email || '', g.rsvp?.plus_one_count || 0, guestStatus(g)]));
-});
-el('btn-export-rsvp')?.addEventListener('click', () => {
-  exportCsv('confirmaciones.csv',
-    ['Nombre', 'Correo', 'Telefono', 'Estado', 'Acompanantes', 'Mensaje', 'Fecha'],
-    rsvpsCache.map((r) => [r.full_name, r.email, r.phone, r.status, r.plus_one_count || 0, r.message, r.updated_at]));
+    ['#', 'Invitado', 'Telefono', 'Correo', 'Acompanantes', 'Estado', 'Mensaje', 'Fecha RSVP'],
+    guestsCache.map((g, i) => [
+      i + 1, guestName(g), g.rsvp?.phone || g.phone || '', g.rsvp?.email || '',
+      g.rsvp?.plus_one_count || 0, guestStatus(g), g.rsvp?.message || '',
+      g.rsvp?.updated_at ? new Date(g.rsvp.updated_at).toLocaleDateString('es-SV') : '',
+    ]));
 });
 
 // ─────────────────────────────────────────────
@@ -336,7 +311,7 @@ el('music-tbody')?.addEventListener('click', (e) => {
 });
 
 // ─────────────────────────────────────────────
-// DATOS: GALERÍA (todas las fotos)
+// DATOS: GALERÍA (todas las fotos + eliminar)
 // ─────────────────────────────────────────────
 async function loadGallery() {
   const { data, error } = await supabase
@@ -345,7 +320,6 @@ async function loadGallery() {
     .order('uploaded_at', { ascending: false });
   if (error) { console.error('[Admin] photos:', error); toast('Error al cargar galería'); return; }
 
-  // Firmar URLs
   photosCache = [];
   for (const row of data || []) {
     const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(row.storage_path, 60 * 60);
@@ -372,21 +346,40 @@ function renderGallery() {
 
   const grid = el('admin-gallery');
   grid.innerHTML = rows.map((p) => `
-    <figure class="admin-photo">
+    <figure class="admin-photo" data-id="${esc(p.id)}" data-path="${esc(p.storage_path)}">
       <img src="${p.url}" alt="" loading="lazy">
       <figcaption class="admin-photo__meta">
         <span class="admin-photo__who">${esc(p.who)}</span>
         <span class="admin-photo__date">${new Date(p.uploaded_at).toLocaleDateString('es-SV')}</span>
       </figcaption>
+      <button type="button" class="admin-photo__delete" aria-label="Eliminar foto">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
     </figure>`).join('');
   el('gallery-empty').hidden = rows.length > 0;
 }
+
+el('admin-gallery')?.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.admin-photo__delete');
+  if (!btn) return;
+  const fig = btn.closest('[data-id]');
+  if (!fig) return;
+  if (!confirm('¿Eliminar esta foto? La acción no se puede deshacer.')) return;
+  const { error: storErr } = await supabase.storage.from(BUCKET).remove([fig.dataset.path]);
+  if (storErr) { toast('No se pudo eliminar del storage'); console.error(storErr); return; }
+  await supabase.from('photos').delete().eq('id', fig.dataset.id);
+  photosCache = photosCache.filter((p) => p.id !== fig.dataset.id);
+  el('gallery-count').textContent = photosCache.length;
+  el('gallery-uploaders').textContent = new Set(photosCache.map((p) => p.who)).size;
+  renderGallery();
+  toast('Foto eliminada');
+});
 
 el('search-gallery')?.addEventListener('input', renderGallery);
 el('gallery-sort')?.addEventListener('change', renderGallery);
 
 // ─────────────────────────────────────────────
-// DATOS: INVITACIONES (links personalizados)
+// DATOS: INVITACIONES PERSONALIZADAS
 // ─────────────────────────────────────────────
 let invitesCache = [];
 
@@ -396,9 +389,11 @@ function inviteLink(id) {
 
 function whatsappLink(inv) {
   const name = `${inv.first_name} ${inv.last_name}`.trim();
+  const companions = inv.max_companions > 0
+    ? ` Incluye ${inv.max_companions} acompañante${inv.max_companions > 1 ? 's' : ''}.` : '';
   const msg =
     `Hola ${name}, Karlita y Edgardo te invitan a celebrar su boda.\n` +
-    `Domingo 16 de agosto de 2026 · 4:00 PM · Hotel Hilton, San Salvador.\n\n` +
+    `Domingo 16 de agosto de 2026 · 4:00 PM · Hotel Hilton, San Salvador.${companions}\n\n` +
     `Abre tu invitación aquí:\n${inviteLink(inv.id)}`;
   const digits = (inv.phone || '').replace(/\D/g, '');
   return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
@@ -407,7 +402,7 @@ function whatsappLink(inv) {
 async function loadInvites() {
   const { data, error } = await supabase
     .from('invites')
-    .select('id, first_name, last_name, phone, created_at')
+    .select('id, first_name, last_name, phone, max_companions, created_at')
     .order('created_at', { ascending: false });
   if (error) { console.error('[Admin] invites:', error); toast('Error al cargar invitaciones'); return; }
   invitesCache = data || [];
@@ -420,14 +415,18 @@ function renderInvites() {
     !q || `${i.first_name} ${i.last_name}`.toLowerCase().includes(q));
 
   const tbody = el('invites-tbody');
-  tbody.innerHTML = rows.map((i) => `
-    <tr>
+  tbody.innerHTML = rows.map((i, idx) => `
+    <tr data-invite-id="${esc(i.id)}">
+      <td class="col-num">${idx + 1}</td>
       <td>${esc(i.first_name)} ${esc(i.last_name)}</td>
       <td>${esc(i.phone || '—')}</td>
+      <td>${i.max_companions != null ? i.max_companions : '—'}</td>
       <td><code class="invite-link">${esc(inviteLink(i.id))}</code></td>
       <td class="col-actions">
         <button class="btn btn--ghost btn--sm" data-copy="${esc(inviteLink(i.id))}">Copiar</button>
         <a class="btn btn--gold btn--sm" href="${esc(whatsappLink(i))}" target="_blank" rel="noopener">WhatsApp</a>
+        <button class="btn btn--ghost btn--sm" data-edit-invite="${esc(i.id)}">Modificar</button>
+        <button class="btn btn--ghost btn--sm btn--danger" data-delete-invite="${esc(i.id)}">Eliminar</button>
       </td>
     </tr>`).join('');
   el('invites-empty').hidden = rows.length > 0;
@@ -440,12 +439,17 @@ el('invite-form')?.addEventListener('submit', async (e) => {
   const first = el('inv-first').value.trim();
   const last = el('inv-last').value.trim();
   const phone = el('inv-phone').value.trim();
+  const guestsVal = el('inv-guests').value.trim();
   if (!first || !last) { toast('Nombre y apellido son obligatorios'); return; }
 
   const btn = el('btn-generate-invite');
   if (btn) { btn.disabled = true; btn.textContent = 'Generando…'; }
   const { error } = await supabase.from('invites').insert({
-    first_name: first, last_name: last, phone: phone || null, created_by: CURRENT_UID,
+    first_name: first,
+    last_name: last,
+    phone: phone || null,
+    max_companions: guestsVal !== '' ? parseInt(guestsVal, 10) : null,
+    created_by: CURRENT_UID,
   });
   if (btn) { btn.disabled = false; btn.textContent = 'Generar link'; }
   if (error) { console.error('[Admin] crear invite:', error); toast('No se pudo generar el link'); return; }
@@ -453,17 +457,75 @@ el('invite-form')?.addEventListener('submit', async (e) => {
   el('invite-form').reset();
   toast('Invitación generada');
   loadInvites();
+  loadGuests();
 });
 
 el('invites-tbody')?.addEventListener('click', async (e) => {
   const copyBtn = e.target.closest('[data-copy]');
-  if (!copyBtn) return;
-  try {
-    await navigator.clipboard.writeText(copyBtn.dataset.copy);
-    toast('Link copiado');
-  } catch {
-    toast('No se pudo copiar');
+  if (copyBtn) {
+    try { await navigator.clipboard.writeText(copyBtn.dataset.copy); toast('Link copiado'); }
+    catch { toast('No se pudo copiar'); }
+    return;
   }
+
+  const editBtn = e.target.closest('[data-edit-invite]');
+  if (editBtn) {
+    const inv = invitesCache.find((i) => i.id === editBtn.dataset.editInvite);
+    if (!inv) return;
+    el('invite-edit-id').value = inv.id;
+    el('inv-edit-first').value = inv.first_name;
+    el('inv-edit-last').value = inv.last_name;
+    el('inv-edit-phone').value = inv.phone || '';
+    el('inv-edit-guests').value = inv.max_companions != null ? inv.max_companions : '';
+    el('invite-modal-backdrop').hidden = false;
+    return;
+  }
+
+  const deleteBtn = e.target.closest('[data-delete-invite]');
+  if (deleteBtn) {
+    const inv = invitesCache.find((i) => i.id === deleteBtn.dataset.deleteInvite);
+    if (!inv) return;
+    const name = `${inv.first_name} ${inv.last_name}`.trim();
+    if (!confirm(`¿Eliminar la invitación de ${name}? Sus respuestas de RSVP quedarán sin invitación asociada.`)) return;
+    const { error } = await supabase.from('invites').delete().eq('id', inv.id);
+    if (error) { toast('No se pudo eliminar'); console.error(error); return; }
+    toast('Invitación eliminada');
+    loadInvites();
+    loadGuests();
+  }
+});
+
+// Modal de edición de invitación
+function closeInviteModal() { el('invite-modal-backdrop').hidden = true; }
+el('invite-modal-close')?.addEventListener('click', closeInviteModal);
+el('inv-edit-cancel')?.addEventListener('click', closeInviteModal);
+el('invite-modal-backdrop')?.addEventListener('click', (e) => {
+  if (e.target === el('invite-modal-backdrop')) closeInviteModal();
+});
+
+el('invite-edit-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = el('invite-edit-id').value;
+  const first = el('inv-edit-first').value.trim();
+  const last = el('inv-edit-last').value.trim();
+  const phone = el('inv-edit-phone').value.trim();
+  const guestsVal = el('inv-edit-guests').value.trim();
+  if (!first || !last) { toast('Nombre y apellido son obligatorios'); return; }
+
+  const btn = el('inv-edit-save');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+  const { error } = await supabase.from('invites').update({
+    first_name: first,
+    last_name: last,
+    phone: phone || null,
+    max_companions: guestsVal !== '' ? parseInt(guestsVal, 10) : null,
+  }).eq('id', id);
+  if (btn) { btn.disabled = false; btn.textContent = 'Guardar cambios'; }
+  if (error) { toast('No se pudo guardar'); console.error(error); return; }
+  toast('Invitación actualizada');
+  closeInviteModal();
+  loadInvites();
+  loadGuests();
 });
 
 // ─────────────────────────────────────────────

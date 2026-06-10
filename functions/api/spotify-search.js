@@ -33,13 +33,20 @@ export async function onRequestGet({ request, env }) {
   const q = (url.searchParams.get('q') || '').trim();
   if (!q) return json([], 200);
 
+  if (!env.SPOTIFY_CLIENT_ID || !env.SPOTIFY_CLIENT_SECRET) {
+    return json({ error: 'Spotify credentials not configured in environment' }, 503);
+  }
+
   try {
     const token = await getAppToken(env);
     const sp = await fetch(
       `https://api.spotify.com/v1/search?type=track&limit=8&market=SV&q=${encodeURIComponent(q)}`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    if (!sp.ok) return json({ error: `spotify ${sp.status}` }, 502);
+    if (!sp.ok) {
+      const body = await sp.text().catch(() => '');
+      return json({ error: `spotify ${sp.status}`, detail: body }, 502);
+    }
 
     const data = await sp.json();
     const tracks = (data.tracks?.items || []).map((t) => ({

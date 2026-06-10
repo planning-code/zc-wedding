@@ -24,7 +24,7 @@ create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer
 set search_path = public as $$
 declare
-  admin_emails text[] := array['karla.carcamo0309@gmail.com', 'ezamorah.90@gmail.com', 'planning@zcwedding.com'];
+  admin_emails text[] := array['karla.carcamo0309@gmail.com', 'ezamorah.90@gmail.com', 'planning@zcwedding.com', 'proyectos@quatricsv.com'];
 begin
   insert into public.profiles (id, email, role)
   values (

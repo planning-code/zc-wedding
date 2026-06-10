@@ -252,12 +252,18 @@ async function applyInviteName() {
   const nameEl = document.getElementById('entry-guest-name');
   if (!wrap || !nameEl) return;
   try {
-    const { data, error } = await supabase.rpc('get_invite_name', { token: INVITE_TOKEN });
-    if (error || !data) return;
-    nameEl.textContent = data;
+    const [{ data: name }, { data: companions }] = await Promise.all([
+      supabase.rpc('get_invite_name', { token: INVITE_TOKEN }),
+      supabase.rpc('get_invite_companions', { token: INVITE_TOKEN }),
+    ]);
+    if (!name) return;
+    let display = name;
+    const n = companions ?? 0;
+    if (n > 0) display += ` y ${n} acompañante${n > 1 ? 's' : ''}`;
+    nameEl.textContent = display;
     wrap.hidden = false;
   } catch (err) {
-    console.error('[Invite] get_invite_name:', err);
+    console.error('[Invite] applyInviteName:', err);
   }
 }
 
