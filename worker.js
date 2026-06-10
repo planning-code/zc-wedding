@@ -11,6 +11,10 @@ import { onRequestGet as spotifySearch } from './functions/api/spotify-search.js
 
 const ROUTES = {
   'GET /api/spotify-search': spotifySearch,
+  'GET /api/debug-env': ({ env }) => new Response(
+    JSON.stringify({ keys: Object.keys(env), hasId: !!env.SPOTIFY_CLIENT_ID, hasSecret: !!env.SPOTIFY_CLIENT_SECRET }),
+    { headers: { 'Content-Type': 'application/json' } }
+  ),
 };
 
 export default {
