@@ -1658,10 +1658,11 @@ ul {
 }
 
 .music-suggestion__copy {
-  padding: var(--s-16) var(--gutter);
+  padding: clamp(var(--s-12), 9vw, var(--s-16)) var(--gutter);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   max-width: 32rem;
 }
 
@@ -1718,10 +1719,11 @@ ul {
 }
 
 .gallery-teaser__copy {
-  padding: var(--s-16) var(--gutter);
+  padding: clamp(var(--s-12), 9vw, var(--s-16)) var(--gutter);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   max-width: 32rem;
   order: 1;
   margin-left: auto;

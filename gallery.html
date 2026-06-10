@@ -39,7 +39,8 @@
       <div class="gallery-upload">
         <label class="btn btn--solid gallery-upload__btn" for="gallery-file">Subir fotos</label>
         <input type="file" id="gallery-file" accept="image/*" multiple hidden>
-        <button type="button" class="btn btn--ghost" data-logout>Cerrar sesión</button>
+        <label class="btn btn--ghost gallery-upload__btn" for="gallery-camera">Tomar foto</label>
+        <input type="file" id="gallery-camera" accept="image/*" capture="environment" hidden>
         <p class="gallery-upload__status" id="gallery-status" aria-live="polite"></p>
       </div>
 

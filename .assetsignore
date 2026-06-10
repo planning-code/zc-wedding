@@ -1,0 +1,19 @@
+# Qué NO debe servirse como archivo público.
+# (Cloudflare Workers Static Assets respeta este archivo en la raíz de assets.)
+
+# Código de servidor y configuración
+functions/
+worker.js
+wrangler.jsonc
+.assetsignore
+node_modules/
+
+# Esquema de base de datos, docs y material interno
+supabase/
+reference/
+Pre wedding Sesh/
+*.md
+.gitignore
+.dev.vars
+.claude/
+.git/

@@ -18,6 +18,7 @@ const grid = document.getElementById('gallery-grid');
 const empty = document.getElementById('gallery-empty');
 const status = document.getElementById('gallery-status');
 const fileInput = document.getElementById('gallery-file');
+const cameraInput = document.getElementById('gallery-camera');
 
 // ── Gates ──
 function applyAuthState(session) {
@@ -53,39 +54,49 @@ document.querySelectorAll('[data-logout]').forEach((el) =>
 );
 
 // ── Subida ──
-if (fileInput) {
-  fileInput.addEventListener('change', async () => {
-    const files = Array.from(fileInput.files || []);
-    if (!files.length) return;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+async function uploadFiles(files, inputEl) {
+  if (!files.length) return;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
 
-    let done = 0;
-    for (const file of files) {
-      if (status) status.textContent = `Subiendo ${done + 1} de ${files.length}…`;
-      try {
-        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
-          cacheControl: '3600', upsert: false, contentType: file.type,
-        });
-        if (upErr) throw upErr;
+  let done = 0;
+  let lastErr = '';
+  for (const file of files) {
+    if (status) status.textContent = `Subiendo ${done + 1} de ${files.length}…`;
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+        cacheControl: '3600', upsert: false, contentType: file.type,
+      });
+      if (upErr) throw upErr;
 
-        const { error: rowErr } = await supabase.from('photos').insert({
-          uploader_id: user.id,
-          storage_path: path,
-          size_bytes: file.size,
-        });
-        if (rowErr) throw rowErr;
-        done++;
-      } catch (err) {
-        console.error('[Galería] subida:', err);
-      }
+      const { error: rowErr } = await supabase.from('photos').insert({
+        uploader_id: user.id,
+        storage_path: path,
+        size_bytes: file.size,
+      });
+      if (rowErr) throw rowErr;
+      done++;
+    } catch (err) {
+      console.error('[Galería] subida:', err);
+      lastErr = err?.message || String(err);
     }
-    if (status) status.textContent = done ? `${done} foto(s) subidas.` : 'No se pudo subir.';
-    fileInput.value = '';
-    loadPhotos();
-  });
+  }
+  if (status) {
+    status.textContent = done
+      ? `${done} foto(s) subidas.`
+      : `No se pudo subir${lastErr ? `: ${lastErr}` : '.'}`;
+  }
+  if (inputEl) inputEl.value = '';
+  loadPhotos();
+}
+
+if (fileInput) {
+  fileInput.addEventListener('change', () => uploadFiles(Array.from(fileInput.files || []), fileInput));
+}
+if (cameraInput) {
+  cameraInput.addEventListener('change', () => uploadFiles(Array.from(cameraInput.files || []), cameraInput));
 }
 
 // ── Listar ──

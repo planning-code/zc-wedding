@@ -67,8 +67,20 @@ function wireSongSearch() {
 
     try {
       const res = await fetch(`/api/spotify-search?q=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const detail = res.status === 404
+          ? 'El servicio de búsqueda no está disponible (revisa el despliegue).'
+          : 'La búsqueda de Spotify no está configurada todavía.';
+        console.error('[Spotify] búsqueda HTTP', res.status);
+        if (feedback) feedback.textContent = detail;
+        return;
+      }
       const tracks = await res.json();
+      if (!Array.isArray(tracks)) {
+        console.error('[Spotify] respuesta inesperada:', tracks);
+        if (feedback) feedback.textContent = 'La búsqueda de Spotify no está configurada todavía.';
+        return;
+      }
       if (feedback) feedback.textContent = tracks.length ? '' : 'Sin resultados. Prueba con otro término.';
       renderTracks(tracks, results, feedback);
     } catch (err) {
