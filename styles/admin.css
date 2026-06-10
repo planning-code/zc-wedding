@@ -38,6 +38,8 @@
 
 /* ─── RESET ─── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* `hidden` debe ganar sobre cualquier `display` de autor (.admin-gate, etc.) */
+[hidden] { display: none !important; }
 html { font-size: 16px; }
 body {
   font-family: var(--font-body);

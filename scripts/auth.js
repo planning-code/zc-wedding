@@ -135,86 +135,7 @@ function wireUserMenu() {
 }
 
 // ─────────────────────────────────────────────
-// 3. Búsqueda de canciones + sugerencia (requiere sesión)
-// ─────────────────────────────────────────────
-
-function wireSongSearch() {
-  const form = document.getElementById('song-form');
-  const results = document.getElementById('song-results');
-  const feedback = document.getElementById('song-feedback');
-  if (!form || !results) return;
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const q = form.querySelector('#song-search').value.trim();
-    if (!q) return;
-
-    results.innerHTML = '';
-    if (feedback) feedback.textContent = 'Buscando…';
-
-    try {
-      const res = await fetch(`/api/spotify-search?q=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const tracks = await res.json();
-      if (feedback) feedback.textContent = tracks.length ? '' : 'Sin resultados. Prueba con otro término.';
-      renderTracks(tracks, results, feedback);
-    } catch (err) {
-      console.error('[Spotify] búsqueda:', err);
-      if (feedback) feedback.textContent = 'No pudimos buscar en Spotify en este momento.';
-    }
-  });
-}
-
-function renderTracks(tracks, container, feedback) {
-  container.innerHTML = '';
-  tracks.forEach((t) => {
-    const li = document.createElement('li');
-    li.className = 'song-result';
-    li.innerHTML = `
-      <img class="song-result__art" src="${t.albumArt || ''}" alt="" width="48" height="48">
-      <span class="song-result__meta">
-        <span class="song-result__name">${escapeHtml(t.name)}</span>
-        <span class="song-result__artist">${escapeHtml(t.artist)}</span>
-      </span>
-      <button type="button" class="btn btn--ghost btn--mini" data-suggest>Sugerir</button>`;
-    li.querySelector('[data-suggest]').addEventListener('click', () => suggestTrack(t, li, feedback));
-    container.appendChild(li);
-  });
-}
-
-async function suggestTrack(track, li, feedback) {
-  const btn = li.querySelector('[data-suggest]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('sin sesión');
-
-    const { error } = await supabase.from('song_suggestions').insert({
-      suggester_id: user.id,
-      spotify_track_id: track.id,
-      track_name: track.name,
-      artist_name: track.artist,
-      album_art_url: track.albumArt || null,
-      preview_url: track.previewUrl || null,
-    });
-    if (error && error.code !== '23505') throw error; // 23505 = ya la sugeriste
-
-    if (btn) { btn.textContent = '¡Sugerida!'; btn.classList.add('is-done'); }
-    if (feedback) feedback.textContent = '¡Gracias! Karlita y Edgardo revisarán tu sugerencia.';
-  } catch (err) {
-    console.error('[Spotify] sugerir:', err);
-    if (btn) { btn.disabled = false; btn.textContent = 'Sugerir'; }
-    if (feedback) feedback.textContent = 'No pudimos guardar tu sugerencia. Inténtalo de nuevo.';
-  }
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
-// ─────────────────────────────────────────────
-// 4. RSVP · abierto para todos (RPC submit_rsvp)
+// 3. RSVP · abierto para todos (RPC submit_rsvp)
 //    Si hay token de invitación, la respuesta queda ligada a esa invitación.
 // ─────────────────────────────────────────────
 
@@ -349,7 +270,6 @@ supabase.auth.onAuthStateChange((_event, session) => applyAuthState(session));
 
 wireGoogleLogin();
 wireUserMenu();
-wireSongSearch();
 wireRsvp();
 applyInviteName();
 prefillRsvpFromInvite();

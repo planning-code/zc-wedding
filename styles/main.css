@@ -113,6 +113,11 @@
   padding: 0;
 }
 
+/* El atributo `hidden` debe ganar sobre cualquier `display` de autor
+   (p. ej. .auth-gate { display:flex }). Sin esto, los gates con display
+   propio nunca se ocultan aunque el JS marque hidden=true. */
+[hidden] { display: none !important; }
+
 html {
   box-sizing: border-box;
   scroll-behavior: smooth;
