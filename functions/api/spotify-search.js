@@ -1,25 +1,12 @@
 /* ============================================================
    GET /api/spotify-search?q=...
    Búsqueda en Spotify usando Client Credentials (sin login del
-   usuario). Requiere env vars en Cloudflare Pages:
-     SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
-   Devuelve un arreglo simplificado de tracks.
+   usuario). Requiere: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
    ============================================================ */
 
-let cachedToken = null; // { access_token, expires_at }
+import { readEnv, json } from './_utils.js';
 
-// Lee una variable de entorno tolerando espacios accidentales en el nombre
-// (p. ej. "SPOTIFY_CLIENT_SECRET " guardado con un espacio al final en Cloudflare)
-// y recortando whitespace del valor pegado por error.
-function readEnv(env, name) {
-  let val = env[name];
-  if (val == null) {
-    for (const key of Object.keys(env)) {
-      if (key.trim() === name) { val = env[key]; break; }
-    }
-  }
-  return typeof val === 'string' ? val.trim() : val;
-}
+let cachedToken = null; // { access_token, expires_at }
 
 async function getAppToken(env) {
   if (cachedToken && cachedToken.expires_at > Date.now()) return cachedToken.access_token;
@@ -78,9 +65,3 @@ export async function onRequestGet({ request, env }) {
   }
 }
 
-function json(body, status) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-  });
-}

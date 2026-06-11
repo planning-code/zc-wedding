@@ -258,7 +258,7 @@ el('btn-export-csv')?.addEventListener('click', () => {
 async function loadMusic() {
   const { data, error } = await supabase
     .from('song_suggestions')
-    .select('id, track_name, artist_name, album_art_url, status, created_at, suggester:profiles!suggester_id(email, full_name)')
+    .select('id, spotify_track_id, track_name, artist_name, album_art_url, status, created_at, suggester:profiles!suggester_id(email, full_name)')
     .order('created_at', { ascending: false });
   if (error) { console.error('[Admin] music:', error); toast('Error al cargar canciones'); return; }
   renderMusic(data || []);
@@ -267,7 +267,10 @@ async function loadMusic() {
 const SONG_LABEL = { pending: 'Pendiente', approved: 'Aprobada', rejected: 'Rechazada' };
 const SONG_CLASS = { pending: 'badge--warning', approved: 'badge--success', rejected: 'badge--muted' };
 
+let songsCache = [];
+
 function renderMusic(songs) {
+  songsCache = songs;
   el('music-pending-count').textContent = songs.filter((s) => s.status === 'pending').length;
   el('music-approved-count').textContent = songs.filter((s) => s.status === 'approved').length;
   el('music-rejected-count').textContent = songs.filter((s) => s.status === 'rejected').length;
@@ -291,13 +294,40 @@ function renderMusic(songs) {
   el('music-empty').hidden = songs.length > 0;
 }
 
+async function addTrackToSpotifyPlaylist(trackId) {
+  if (!trackId) return;
+  try {
+    const res = await fetch('/api/spotify-add-track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trackId }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      console.warn('[Admin] Spotify add-track:', data);
+      toast('Canción aprobada (no se pudo agregar a Spotify: ' + (data.error || res.status) + ')');
+    } else {
+      toast('Canción aprobada y agregada a la playlist de Spotify');
+    }
+  } catch (err) {
+    console.warn('[Admin] Spotify add-track:', err);
+    toast('Canción aprobada (sin conexión a Spotify)');
+  }
+}
+
 async function setSongStatus(id, status) {
   const patch = status === 'pending'
     ? { status, reviewed_by: null, reviewed_at: null }
     : { status, reviewed_by: CURRENT_UID, reviewed_at: new Date().toISOString() };
   const { error } = await supabase.from('song_suggestions').update(patch).eq('id', id);
   if (error) { console.error('[Admin] update song:', error); toast('No se pudo actualizar'); return; }
-  toast(status === 'approved' ? 'Canción aprobada' : status === 'rejected' ? 'Canción rechazada' : 'Revertida');
+
+  if (status === 'approved') {
+    const song = songsCache.find((s) => s.id === id);
+    addTrackToSpotifyPlaylist(song?.spotify_track_id);
+  } else {
+    toast(status === 'rejected' ? 'Canción rechazada' : 'Revertida');
+  }
   loadMusic();
 }
 

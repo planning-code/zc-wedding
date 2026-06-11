@@ -2,15 +2,18 @@
    Karlita & Edgardo · Worker de entrada (Cloudflare Workers)
    - Sirve los archivos estáticos vía el binding ASSETS.
    - Enruta /api/* a los handlers que viven en functions/api/.
-   Nota: el sitio se despliega como Worker (no Pages), así que la
-   convención de carpeta functions/ no se autoenruta; este router
-   lo hace explícito reutilizando esos mismos handlers.
    ============================================================ */
 
 import { onRequestGet as spotifySearch } from './functions/api/spotify-search.js';
+import { onRequestGet as spotifyAuthorize } from './functions/api/spotify-authorize.js';
+import { onRequestGet as spotifyAuthCallback } from './functions/api/spotify-auth-callback.js';
+import { onRequestPost as spotifyAddTrack } from './functions/api/spotify-add-track.js';
 
 const ROUTES = {
   'GET /api/spotify-search': spotifySearch,
+  'GET /api/spotify-authorize': spotifyAuthorize,
+  'GET /api/spotify-auth-callback': spotifyAuthCallback,
+  'POST /api/spotify-add-track': spotifyAddTrack,
 };
 
 export default {
@@ -18,7 +21,6 @@ export default {
     const url = new URL(request.url);
     const handler = ROUTES[`${request.method} ${url.pathname}`];
     if (handler) return handler({ request, env, ctx });
-    // Cualquier otra ruta: servir archivos estáticos.
     return env.ASSETS.fetch(request);
   },
 };
