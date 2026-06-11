@@ -118,15 +118,25 @@ function closeSidebar() { window.closeSidebar?.(); }
 // DATOS: INVITADOS (invites + su RSVP)
 // ─────────────────────────────────────────────
 let guestsCache = [];
+let anonCache = [];
 let guestFilter = 'all';
 
 async function loadGuests() {
-  const { data: invites, error } = await supabase
-    .from('invites')
-    .select('id, first_name, last_name, phone, max_companions, created_at, rsvps(id, full_name, email, phone, status, message, plus_one_count, source, updated_at)')
-    .order('created_at', { ascending: false });
-  if (error) { console.error('[Admin] invites+rsvps:', error); toast('Error al cargar invitados'); return; }
-  guestsCache = (invites || []).map((i) => ({ ...i, rsvp: (i.rsvps && i.rsvps[0]) || null }));
+  const [inviteRes, anonRes] = await Promise.all([
+    supabase
+      .from('invites')
+      .select('id, first_name, last_name, phone, max_companions, created_at, rsvps(id, full_name, email, phone, status, message, plus_one_count, source, updated_at)')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('rsvps')
+      .select('id, full_name, email, phone, status, message, plus_one_count, source, updated_at, created_at')
+      .is('invite_id', null)
+      .order('created_at', { ascending: false }),
+  ]);
+  if (inviteRes.error) { console.error('[Admin] invites+rsvps:', inviteRes.error); toast('Error al cargar invitados'); return; }
+  if (anonRes.error) { console.error('[Admin] anon rsvps:', anonRes.error); }
+  guestsCache = (inviteRes.data || []).map((i) => ({ ...i, rsvp: (i.rsvps && i.rsvps[0]) || null }));
+  anonCache = anonRes.data || [];
   renderGuests();
 }
 
@@ -140,9 +150,6 @@ function guestStatus(g) { return g.rsvp ? g.rsvp.status : 'pending'; }
 
 function renderGuests() {
   const q = (el('search-guests')?.value || '').toLowerCase();
-  let rows = guestsCache.filter((g) =>
-    !q || guestName(g).toLowerCase().includes(q) || (g.rsvp?.email || '').toLowerCase().includes(q));
-  if (guestFilter !== 'all') rows = rows.filter((g) => guestStatus(g) === guestFilter);
 
   const confirmed = guestsCache.filter((g) => guestStatus(g) === 'confirmed');
   el('kpi-total').textContent = guestsCache.length;
@@ -150,6 +157,42 @@ function renderGuests() {
   el('kpi-pending').textContent = guestsCache.filter((g) => guestStatus(g) === 'pending').length;
   el('kpi-declined').textContent = guestsCache.filter((g) => guestStatus(g) === 'declined').length;
   el('kpi-seats').textContent = confirmed.reduce((sum, g) => sum + 1 + (g.rsvp?.plus_one_count || 0), 0);
+
+  if (guestFilter === 'anon') {
+    const rows = anonCache.filter((r) =>
+      !q || (r.full_name || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q));
+    const tbody = el('guests-tbody');
+    const opt = (status, v, label) => `<option value="${v}"${status === v ? ' selected' : ''}>${label}</option>`;
+    tbody.innerHTML = rows.map((r, idx) => {
+      const fecha = r.updated_at ? new Date(r.updated_at).toLocaleDateString('es-SV') : '—';
+      return `
+      <tr data-anon-rsvp="${esc(r.id)}">
+        <td class="col-num">${idx + 1}</td>
+        <td>${esc(r.full_name || '—')}</td>
+        <td>${esc(r.phone || '—')}</td>
+        <td>${esc(r.email || '—')}</td>
+        <td>
+          <input class="guest-edit__num" type="number" min="0" max="20" value="${r.plus_one_count || 0}"
+                 data-plus aria-label="Acompañantes de ${esc(r.full_name || '')}">
+        </td>
+        <td>
+          <select class="guest-edit__status guest-edit__status--${r.status}" data-status aria-label="Estado de ${esc(r.full_name || '')}">
+            ${opt(r.status, 'pending', 'Pendiente')}
+            ${opt(r.status, 'confirmed', 'Confirmado')}
+            ${opt(r.status, 'declined', 'Declinó')}
+          </select>
+        </td>
+        <td>${esc(r.message || '—')}</td>
+        <td>${fecha}</td>
+      </tr>`;
+    }).join('');
+    el('guests-empty').hidden = rows.length > 0;
+    return;
+  }
+
+  let rows = guestsCache.filter((g) =>
+    !q || guestName(g).toLowerCase().includes(q) || (g.rsvp?.email || '').toLowerCase().includes(q));
+  if (guestFilter !== 'all') rows = rows.filter((g) => guestStatus(g) === guestFilter);
 
   const tbody = el('guests-tbody');
   tbody.innerHTML = rows.map((g, idx) => {
@@ -221,13 +264,27 @@ async function setGuestRsvp(invite, status, plusOne) {
   loadGuests();
 }
 
+async function setAnonRsvp(rsvpId, status, plusOne) {
+  const { error } = await supabase.from('rsvps').update({
+    status,
+    plus_one_count: Math.max(0, plusOne || 0),
+  }).eq('id', rsvpId);
+  if (error) { console.error('[Admin] anon rsvp:', error); toast('No se pudo actualizar'); return; }
+  toast('Asistencia actualizada');
+  loadGuests();
+}
+
 el('guests-tbody')?.addEventListener('change', (e) => {
-  const tr = e.target.closest('tr[data-invite]');
+  const tr = e.target.closest('tr');
   if (!tr) return;
-  const invite = guestsCache.find((g) => g.id === tr.dataset.invite);
-  if (!invite) return;
   const status = tr.querySelector('[data-status]')?.value || 'pending';
   const plus = parseInt(tr.querySelector('[data-plus]')?.value || '0', 10);
+  if (tr.dataset.anonRsvp) {
+    setAnonRsvp(tr.dataset.anonRsvp, status, plus);
+    return;
+  }
+  const invite = guestsCache.find((g) => g.id === tr.dataset.invite);
+  if (!invite) return;
   setGuestRsvp(invite, status, plus);
 });
 
