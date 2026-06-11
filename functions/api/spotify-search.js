@@ -8,14 +8,27 @@
 
 let cachedToken = null; // { access_token, expires_at }
 
+// Lee una variable de entorno tolerando espacios accidentales en el nombre
+// (p. ej. "SPOTIFY_CLIENT_SECRET " guardado con un espacio al final en Cloudflare).
+function readEnv(env, name) {
+  if (env[name] != null) return env[name];
+  for (const key of Object.keys(env)) {
+    if (key.trim() === name) return env[key];
+  }
+  return undefined;
+}
+
 async function getAppToken(env) {
   if (cachedToken && cachedToken.expires_at > Date.now()) return cachedToken.access_token;
+
+  const clientId = readEnv(env, 'SPOTIFY_CLIENT_ID');
+  const clientSecret = readEnv(env, 'SPOTIFY_CLIENT_SECRET');
 
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: 'Basic ' + btoa(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`),
+      Authorization: 'Basic ' + btoa(`${clientId}:${clientSecret}`),
     },
     body: 'grant_type=client_credentials',
   });
@@ -33,7 +46,7 @@ export async function onRequestGet({ request, env }) {
   const q = (url.searchParams.get('q') || '').trim();
   if (!q) return json([], 200);
 
-  if (!env.SPOTIFY_CLIENT_ID || !env.SPOTIFY_CLIENT_SECRET) {
+  if (!readEnv(env, 'SPOTIFY_CLIENT_ID') || !readEnv(env, 'SPOTIFY_CLIENT_SECRET')) {
     return json({ error: 'Spotify credentials not configured in environment' }, 503);
   }
 
