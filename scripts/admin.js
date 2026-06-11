@@ -159,9 +159,11 @@ function statusSelect(status, name) {
     </select>`;
 }
 
+const TRASH_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+
 const deleteCell = `
-  <td class="col-actions">
-    <button class="btn btn--ghost btn--sm btn--danger" data-delete-guest type="button">Eliminar</button>
+  <td class="col-actions" data-label="Acciones">
+    <button class="icon-btn icon-btn--danger" data-delete-guest type="button" aria-label="Eliminar" title="Eliminar">${TRASH_SVG}</button>
   </td>`;
 
 // Fila de un invitado con invitación personalizada (vive en `invites`).
@@ -173,17 +175,17 @@ function guestRowHtml(g, idx) {
   const name = guestName(g);
   return `
     <tr data-invite="${g.id}">
-      <td class="col-num">${idx + 1}</td>
-      <td>${esc(name)}</td>
-      <td>${esc(phone)}</td>
-      <td>${esc(g.rsvp?.email || '—')}</td>
-      <td>
+      <td class="col-num" data-label="#">${idx + 1}</td>
+      <td data-label="Invitado">${esc(name)}</td>
+      <td data-label="Teléfono">${esc(phone)}</td>
+      <td data-label="Correo">${esc(g.rsvp?.email || '—')}</td>
+      <td data-label="Acompañantes">
         <input class="guest-edit__num" type="number" min="0" max="20" value="${plus}"
                data-plus aria-label="Acompañantes de ${esc(name)}">
       </td>
-      <td>${statusSelect(status, name)}</td>
-      <td>${esc(g.rsvp?.message || '—')}</td>
-      <td>${fecha}</td>
+      <td data-label="Estado RSVP">${statusSelect(status, name)}</td>
+      <td data-label="Mensaje">${esc(g.rsvp?.message || '—')}</td>
+      <td data-label="Fecha RSVP">${fecha}</td>
       ${deleteCell}
     </tr>`;
 }
@@ -194,17 +196,17 @@ function anonRowHtml(r, idx) {
   const name = r.full_name || '';
   return `
     <tr data-anon-rsvp="${esc(r.id)}">
-      <td class="col-num">${idx + 1}</td>
-      <td>${esc(r.full_name || '—')}</td>
-      <td>${esc(r.phone || '—')}</td>
-      <td>${esc(r.email || '—')}</td>
-      <td>
+      <td class="col-num" data-label="#">${idx + 1}</td>
+      <td data-label="Invitado">${esc(r.full_name || '—')}</td>
+      <td data-label="Teléfono">${esc(r.phone || '—')}</td>
+      <td data-label="Correo">${esc(r.email || '—')}</td>
+      <td data-label="Acompañantes">
         <input class="guest-edit__num" type="number" min="0" max="20" value="${r.plus_one_count || 0}"
                data-plus aria-label="Acompañantes de ${esc(name)}">
       </td>
-      <td>${statusSelect(r.status, name)}</td>
-      <td>${esc(r.message || '—')}</td>
-      <td>${fecha}</td>
+      <td data-label="Estado RSVP">${statusSelect(r.status, name)}</td>
+      <td data-label="Mensaje">${esc(r.message || '—')}</td>
+      <td data-label="Fecha RSVP">${fecha}</td>
       ${deleteCell}
     </tr>`;
 }
@@ -336,7 +338,7 @@ el('guests-tbody')?.addEventListener('click', async (e) => {
     const id = tr.dataset.anonRsvp;
     const r = anonCache.find((x) => x.id === id);
     const name = r?.full_name || 'esta confirmación';
-    if (!confirm(`¿Eliminar la confirmación de ${name}? La acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Seguro que quieres eliminar la confirmación de ${name}?\n\nEsta acción es permanente y no se puede deshacer.`)) return;
     const { error } = await supabase.from('rsvps').delete().eq('id', id);
     if (error) { console.error('[Admin] borrar rsvp anónimo:', error); toast('No se pudo eliminar'); return; }
     toast('Confirmación eliminada');
@@ -347,7 +349,7 @@ el('guests-tbody')?.addEventListener('click', async (e) => {
   const invite = guestsCache.find((g) => g.id === tr.dataset.invite);
   if (!invite) return;
   const name = guestName(invite);
-  if (!confirm(`¿Eliminar a ${name}? Se borrará su invitación personalizada y su respuesta de RSVP. La acción no se puede deshacer.`)) return;
+  if (!confirm(`¿Seguro que quieres eliminar a ${name}?\n\nEsta acción es permanente y no se puede deshacer. Se borrará su invitación personalizada y su confirmación. Si quieres volver a invitarlo, tendrás que generarle y enviarle una nueva invitación.`)) return;
   if (await deleteInviteFully(invite)) {
     toast('Invitado eliminado');
     loadGuests();
@@ -408,11 +410,11 @@ function renderMusic(songs) {
       : `<button class="btn btn--ghost btn--sm" data-reset="${s.id}">Revertir</button>`;
     return `
     <tr>
-      <td>${esc(s.track_name)}</td>
-      <td>${esc(s.artist_name)}</td>
-      <td>${esc(who)}</td>
-      <td><span class="badge ${SONG_CLASS[s.status]}">${SONG_LABEL[s.status]}</span></td>
-      <td class="col-actions">${actions}</td>
+      <td data-label="Canción">${esc(s.track_name)}</td>
+      <td data-label="Artista">${esc(s.artist_name)}</td>
+      <td data-label="Sugerida por">${esc(who)}</td>
+      <td data-label="Estado"><span class="badge ${SONG_CLASS[s.status]}">${SONG_LABEL[s.status]}</span></td>
+      <td class="col-actions" data-label="Acciones"><div class="row-actions">${actions}</div></td>
     </tr>`;
   }).join('');
   el('music-empty').hidden = songs.length > 0;
@@ -571,16 +573,18 @@ function renderInvites() {
   const tbody = el('invites-tbody');
   tbody.innerHTML = rows.map((i, idx) => `
     <tr data-invite-id="${esc(i.id)}">
-      <td class="col-num">${idx + 1}</td>
-      <td>${esc(i.first_name)} ${esc(i.last_name)}</td>
-      <td>${esc(i.phone || '—')}</td>
-      <td>${i.max_companions != null ? i.max_companions : '—'}</td>
-      <td><code class="invite-link">${esc(inviteLink(i.id))}</code></td>
-      <td class="col-actions">
-        <button class="btn btn--ghost btn--sm" data-copy="${esc(inviteLink(i.id))}">Copiar</button>
-        <a class="btn btn--gold btn--sm" href="${esc(whatsappLink(i))}" target="_blank" rel="noopener">WhatsApp</a>
-        <button class="btn btn--ghost btn--sm" data-edit-invite="${esc(i.id)}">Modificar</button>
-        <button class="btn btn--ghost btn--sm btn--danger" data-delete-invite="${esc(i.id)}">Eliminar</button>
+      <td class="col-num" data-label="#">${idx + 1}</td>
+      <td data-label="Invitado">${esc(i.first_name)} ${esc(i.last_name)}</td>
+      <td data-label="Teléfono">${esc(i.phone || '—')}</td>
+      <td data-label="Acompañantes">${i.max_companions != null ? i.max_companions : '—'}</td>
+      <td data-label="Link"><code class="invite-link">${esc(inviteLink(i.id))}</code></td>
+      <td class="col-actions" data-label="Acciones">
+        <div class="row-actions">
+          <button class="btn btn--ghost btn--sm" data-copy="${esc(inviteLink(i.id))}">Copiar</button>
+          <a class="btn btn--gold btn--sm" href="${esc(whatsappLink(i))}" target="_blank" rel="noopener">WhatsApp</a>
+          <button class="btn btn--ghost btn--sm" data-edit-invite="${esc(i.id)}">Modificar</button>
+          <button class="icon-btn icon-btn--danger" data-delete-invite="${esc(i.id)}" type="button" aria-label="Eliminar" title="Eliminar">${TRASH_SVG}</button>
+        </div>
       </td>
     </tr>`).join('');
   el('invites-empty').hidden = rows.length > 0;
@@ -640,7 +644,7 @@ el('invites-tbody')?.addEventListener('click', async (e) => {
     const inv = invitesCache.find((i) => i.id === deleteBtn.dataset.deleteInvite);
     if (!inv) return;
     const name = `${inv.first_name} ${inv.last_name}`.trim();
-    if (!confirm(`¿Eliminar la invitación de ${name}? Se borrará también su respuesta de RSVP. La acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Seguro que quieres eliminar la invitación de ${name}?\n\nEsta acción es permanente y no se puede deshacer. Se borrará el link y su confirmación. Para volver a invitarlo, tendrás que generarle y enviarle una nueva invitación.`)) return;
     if (await deleteInviteFully(inv)) {
       toast('Invitación eliminada');
       loadInvites();

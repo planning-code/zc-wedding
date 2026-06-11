@@ -20,5 +20,9 @@ export async function onRequestGet({ env }) {
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('redirect_uri', REDIRECT_URI);
   url.searchParams.set('scope', SCOPE);
+  // Fuerza volver a mostrar el consentimiento para garantizar que el
+  // refresh token incluya los scopes de modificar playlist (si un token
+  // anterior se generó sin ellos, Spotify lo reutilizaría sin pedirlos).
+  url.searchParams.set('show_dialog', 'true');
   return Response.redirect(url.toString(), 302);
 }

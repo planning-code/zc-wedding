@@ -395,7 +395,27 @@ table { border-collapse: collapse; width: 100%; }
 .data-table tbody tr:hover td { background: var(--surface-2); }
 
 .col-actions { text-align: right; }
-.row-actions { display: flex; gap: .375rem; justify-content: flex-end; }
+.row-actions { display: flex; gap: .375rem; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+
+/* Botón de ícono (p. ej. eliminar) */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.icon-btn:hover { color: var(--text-1); background: var(--surface-2); }
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn--danger:hover { color: #fff; background: #c0392b; border-color: #c0392b; }
+.icon-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
 /* Edición inline de asistencia (super admin) */
 .guest-edit__num {
@@ -681,6 +701,55 @@ table { border-collapse: collapse; width: 100%; }
   .kpi {
     min-width: calc(50% - 1px);
   }
+
+  /* Tablas a tarjetas: en móvil cada fila es una tarjeta apilada,
+     sin scroll horizontal. La etiqueta de cada celda viene de data-label. */
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .data-table { display: block; }
+  .data-table thead { display: none; }
+  .data-table tbody { display: block; }
+  .data-table tbody tr {
+    display: block;
+    background: var(--surface-1);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    margin-bottom: .75rem;
+    overflow: hidden;
+  }
+  .data-table tbody tr:hover td { background: transparent; }
+  .data-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .7rem .9rem;
+    border-bottom: 1px solid var(--border-soft);
+    text-align: right;
+  }
+  .data-table tbody tr td:last-child { border-bottom: 0; }
+  .data-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: .625rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    text-align: left;
+  }
+  /* Celdas sin etiqueta (data-label vacío) ocultan el ::before */
+  .data-table td:not([data-label])::before,
+  .data-table td[data-label=""]::before { content: none; }
+  /* El número de fila aporta poco en tarjeta; se oculta */
+  .data-table td.col-num { display: none; }
+  .data-table .col-actions { justify-content: flex-end; }
+  .data-table .row-actions { justify-content: flex-end; }
+  .invite-link { text-align: right; }
 }
 
 /* ─── Badges extra (alias de estado) ─── */

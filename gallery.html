@@ -44,11 +44,40 @@
         <p class="gallery-upload__status" id="gallery-status" aria-live="polite"></p>
       </div>
 
+      <!-- Barra de selección -->
+      <div class="gallery-toolbar" id="gallery-toolbar" hidden>
+        <button type="button" class="btn btn--ghost btn--mini" id="gallery-select-toggle">Seleccionar</button>
+        <div class="gallery-select-actions" id="gallery-select-actions" hidden>
+          <span class="gallery-select-count" id="gallery-select-count">0 seleccionadas</span>
+          <button type="button" class="btn btn--ghost btn--mini" id="gallery-select-all">Todas</button>
+          <button type="button" class="btn btn--solid btn--mini" id="gallery-download-sel" disabled>Descargar</button>
+          <button type="button" class="btn btn--ghost btn--mini gallery-btn-danger" id="gallery-delete-sel" hidden disabled>Eliminar</button>
+          <button type="button" class="btn btn--ghost btn--mini" id="gallery-select-cancel">Cancelar</button>
+        </div>
+      </div>
+
       <div class="gallery-grid" id="gallery-grid" data-role="guest"></div>
       <p class="gallery-empty" id="gallery-empty" hidden>Aún no hay fotos. ¡Sé el primero en subir una!</p>
     </div>
 
   </main>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Foto ampliada">
+    <button class="lightbox__close" id="lightbox-close" type="button" aria-label="Cerrar">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" type="button" aria-label="Foto anterior">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <figure class="lightbox__stage">
+      <img class="lightbox__img" id="lightbox-img" alt="">
+    </figure>
+    <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" type="button" aria-label="Foto siguiente">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="lightbox__download btn btn--solid btn--mini" id="lightbox-download" type="button">Descargar</button>
+  </div>
 
   <script src="/scripts/config.js"></script>
   <script src="/scripts/gallery.js" type="module"></script>

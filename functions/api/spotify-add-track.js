@@ -10,6 +10,8 @@ import { readEnv, json } from './_utils.js';
 
 const PLAYLIST_ID = '4FzoQmrCXMBEkqJAOfl19h';
 
+// Obtiene un access token de usuario a partir del refresh token.
+// Devuelve { token } o { error } con el detalle de Spotify.
 async function getUserToken(env) {
   const clientId = readEnv(env, 'SPOTIFY_CLIENT_ID');
   const clientSecret = readEnv(env, 'SPOTIFY_CLIENT_SECRET');
@@ -23,9 +25,11 @@ async function getUserToken(env) {
     },
     body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken }),
   });
-  if (!res.ok) throw new Error(`token refresh ${res.status}`);
-  const data = await res.json();
-  return data.access_token;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { error: `No se pudo refrescar el token de Spotify (${res.status}): ${data.error_description || data.error || 'desconocido'}. Vuelve a generar el SPOTIFY_REFRESH_TOKEN en /api/spotify-authorize.` };
+  }
+  return { token: data.access_token };
 }
 
 export async function onRequestPost({ request, env }) {
@@ -44,18 +48,30 @@ export async function onRequestPost({ request, env }) {
   if (!trackId) return json({ error: 'trackId requerido' }, 400);
 
   try {
-    const token = await getUserToken(env);
+    const auth = await getUserToken(env);
+    if (auth.error) return json({ error: auth.error }, 502);
+
     const res = await fetch(`https://api.spotify.com/v1/playlists/${PLAYLIST_ID}/tracks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${auth.token}`,
       },
       body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
     });
+
     if (!res.ok) {
-      const detail = await res.text().catch(() => '');
-      return json({ error: `spotify ${res.status}`, detail }, 502);
+      const body = await res.json().catch(() => ({}));
+      const spMsg = body?.error?.message || '';
+      let hint = '';
+      if (res.status === 403) {
+        hint = ' La cuenta que autorizó no puede modificar esta playlist. Autoriza en /api/spotify-authorize con la MISMA cuenta dueña de la playlist (o haz la playlist colaborativa) y verifica el PLAYLIST_ID.';
+      } else if (res.status === 401) {
+        hint = ' El token no es válido o le faltan permisos. Vuelve a generar el SPOTIFY_REFRESH_TOKEN en /api/spotify-authorize.';
+      } else if (res.status === 404) {
+        hint = ' No se encontró la playlist. Revisa el PLAYLIST_ID.';
+      }
+      return json({ error: `Spotify ${res.status}: ${spMsg}${hint}` }, 502);
     }
     return json({ ok: true });
   } catch (err) {
