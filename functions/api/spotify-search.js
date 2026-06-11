@@ -9,13 +9,16 @@
 let cachedToken = null; // { access_token, expires_at }
 
 // Lee una variable de entorno tolerando espacios accidentales en el nombre
-// (p. ej. "SPOTIFY_CLIENT_SECRET " guardado con un espacio al final en Cloudflare).
+// (p. ej. "SPOTIFY_CLIENT_SECRET " guardado con un espacio al final en Cloudflare)
+// y recortando whitespace del valor pegado por error.
 function readEnv(env, name) {
-  if (env[name] != null) return env[name];
-  for (const key of Object.keys(env)) {
-    if (key.trim() === name) return env[key];
+  let val = env[name];
+  if (val == null) {
+    for (const key of Object.keys(env)) {
+      if (key.trim() === name) { val = env[key]; break; }
+    }
   }
-  return undefined;
+  return typeof val === 'string' ? val.trim() : val;
 }
 
 async function getAppToken(env) {
