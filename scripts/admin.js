@@ -148,8 +148,73 @@ function guestName(g) {
 }
 function guestStatus(g) { return g.rsvp ? g.rsvp.status : 'pending'; }
 
+const statusOpt = (status, v, label) => `<option value="${v}"${status === v ? ' selected' : ''}>${label}</option>`;
+
+function statusSelect(status, name) {
+  return `
+    <select class="guest-edit__status guest-edit__status--${status}" data-status aria-label="Estado de ${esc(name)}">
+      ${statusOpt(status, 'pending', 'Pendiente')}
+      ${statusOpt(status, 'confirmed', 'Confirmado')}
+      ${statusOpt(status, 'declined', 'Declinó')}
+    </select>`;
+}
+
+const deleteCell = `
+  <td class="col-actions">
+    <button class="btn btn--ghost btn--sm btn--danger" data-delete-guest type="button">Eliminar</button>
+  </td>`;
+
+// Fila de un invitado con invitación personalizada (vive en `invites`).
+function guestRowHtml(g, idx) {
+  const status = guestStatus(g);
+  const plus = g.rsvp?.plus_one_count || 0;
+  const phone = g.rsvp?.phone || g.phone || '—';
+  const fecha = g.rsvp?.updated_at ? new Date(g.rsvp.updated_at).toLocaleDateString('es-SV') : '—';
+  const name = guestName(g);
+  return `
+    <tr data-invite="${g.id}">
+      <td class="col-num">${idx + 1}</td>
+      <td>${esc(name)}</td>
+      <td>${esc(phone)}</td>
+      <td>${esc(g.rsvp?.email || '—')}</td>
+      <td>
+        <input class="guest-edit__num" type="number" min="0" max="20" value="${plus}"
+               data-plus aria-label="Acompañantes de ${esc(name)}">
+      </td>
+      <td>${statusSelect(status, name)}</td>
+      <td>${esc(g.rsvp?.message || '—')}</td>
+      <td>${fecha}</td>
+      ${deleteCell}
+    </tr>`;
+}
+
+// Fila de una confirmación sin invitación (vive en `rsvps`, invite_id NULL).
+function anonRowHtml(r, idx) {
+  const fecha = r.updated_at ? new Date(r.updated_at).toLocaleDateString('es-SV') : '—';
+  const name = r.full_name || '';
+  return `
+    <tr data-anon-rsvp="${esc(r.id)}">
+      <td class="col-num">${idx + 1}</td>
+      <td>${esc(r.full_name || '—')}</td>
+      <td>${esc(r.phone || '—')}</td>
+      <td>${esc(r.email || '—')}</td>
+      <td>
+        <input class="guest-edit__num" type="number" min="0" max="20" value="${r.plus_one_count || 0}"
+               data-plus aria-label="Acompañantes de ${esc(name)}">
+      </td>
+      <td>${statusSelect(r.status, name)}</td>
+      <td>${esc(r.message || '—')}</td>
+      <td>${fecha}</td>
+      ${deleteCell}
+    </tr>`;
+}
+
 function renderGuests() {
   const q = (el('search-guests')?.value || '').toLowerCase();
+  const matchGuest = (g) =>
+    !q || guestName(g).toLowerCase().includes(q) || (g.rsvp?.email || '').toLowerCase().includes(q);
+  const matchAnon = (r) =>
+    !q || (r.full_name || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q);
 
   const confirmed = guestsCache.filter((g) => guestStatus(g) === 'confirmed');
   el('kpi-total').textContent = guestsCache.length;
@@ -158,71 +223,32 @@ function renderGuests() {
   el('kpi-declined').textContent = guestsCache.filter((g) => guestStatus(g) === 'declined').length;
   el('kpi-seats').textContent = confirmed.reduce((sum, g) => sum + 1 + (g.rsvp?.plus_one_count || 0), 0);
 
+  const tbody = el('guests-tbody');
+  let count = 0;
+
   if (guestFilter === 'anon') {
-    const rows = anonCache.filter((r) =>
-      !q || (r.full_name || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q));
-    const tbody = el('guests-tbody');
-    const opt = (status, v, label) => `<option value="${v}"${status === v ? ' selected' : ''}>${label}</option>`;
-    tbody.innerHTML = rows.map((r, idx) => {
-      const fecha = r.updated_at ? new Date(r.updated_at).toLocaleDateString('es-SV') : '—';
-      return `
-      <tr data-anon-rsvp="${esc(r.id)}">
-        <td class="col-num">${idx + 1}</td>
-        <td>${esc(r.full_name || '—')}</td>
-        <td>${esc(r.phone || '—')}</td>
-        <td>${esc(r.email || '—')}</td>
-        <td>
-          <input class="guest-edit__num" type="number" min="0" max="20" value="${r.plus_one_count || 0}"
-                 data-plus aria-label="Acompañantes de ${esc(r.full_name || '')}">
-        </td>
-        <td>
-          <select class="guest-edit__status guest-edit__status--${r.status}" data-status aria-label="Estado de ${esc(r.full_name || '')}">
-            ${opt(r.status, 'pending', 'Pendiente')}
-            ${opt(r.status, 'confirmed', 'Confirmado')}
-            ${opt(r.status, 'declined', 'Declinó')}
-          </select>
-        </td>
-        <td>${esc(r.message || '—')}</td>
-        <td>${fecha}</td>
-      </tr>`;
-    }).join('');
-    el('guests-empty').hidden = rows.length > 0;
-    return;
+    const rows = anonCache.filter(matchAnon);
+    tbody.innerHTML = rows.map((r, idx) => anonRowHtml(r, idx)).join('');
+    count = rows.length;
+  } else if (guestFilter === 'confirmed-all') {
+    // Confirmados con invitación + confirmados sin invitación, en una sola lista.
+    const invited = guestsCache.filter((g) => guestStatus(g) === 'confirmed' && matchGuest(g));
+    const anon = anonCache.filter((r) => r.status === 'confirmed' && matchAnon(r));
+    let idx = 0;
+    const html = [
+      ...invited.map((g) => guestRowHtml(g, idx++)),
+      ...anon.map((r) => anonRowHtml(r, idx++)),
+    ];
+    tbody.innerHTML = html.join('');
+    count = html.length;
+  } else {
+    let rows = guestsCache.filter(matchGuest);
+    if (guestFilter !== 'all') rows = rows.filter((g) => guestStatus(g) === guestFilter);
+    tbody.innerHTML = rows.map((g, idx) => guestRowHtml(g, idx)).join('');
+    count = rows.length;
   }
 
-  let rows = guestsCache.filter((g) =>
-    !q || guestName(g).toLowerCase().includes(q) || (g.rsvp?.email || '').toLowerCase().includes(q));
-  if (guestFilter !== 'all') rows = rows.filter((g) => guestStatus(g) === guestFilter);
-
-  const tbody = el('guests-tbody');
-  tbody.innerHTML = rows.map((g, idx) => {
-    const status = guestStatus(g);
-    const plus = g.rsvp?.plus_one_count || 0;
-    const phone = g.rsvp?.phone || g.phone || '—';
-    const fecha = g.rsvp?.updated_at ? new Date(g.rsvp.updated_at).toLocaleDateString('es-SV') : '—';
-    const opt = (v, label) => `<option value="${v}"${status === v ? ' selected' : ''}>${label}</option>`;
-    return `
-    <tr data-invite="${g.id}">
-      <td class="col-num">${idx + 1}</td>
-      <td>${esc(guestName(g))}</td>
-      <td>${esc(phone)}</td>
-      <td>${esc(g.rsvp?.email || '—')}</td>
-      <td>
-        <input class="guest-edit__num" type="number" min="0" max="20" value="${plus}"
-               data-plus aria-label="Acompañantes de ${esc(guestName(g))}">
-      </td>
-      <td>
-        <select class="guest-edit__status guest-edit__status--${status}" data-status aria-label="Estado de ${esc(guestName(g))}">
-          ${opt('pending', 'Pendiente')}
-          ${opt('confirmed', 'Confirmado')}
-          ${opt('declined', 'Declinó')}
-        </select>
-      </td>
-      <td>${esc(g.rsvp?.message || '—')}</td>
-      <td>${fecha}</td>
-    </tr>`;
-  }).join('');
-  el('guests-empty').hidden = rows.length > 0;
+  el('guests-empty').hidden = count > 0;
 }
 
 // Filtros de estado
@@ -286,6 +312,47 @@ el('guests-tbody')?.addEventListener('change', (e) => {
   const invite = guestsCache.find((g) => g.id === tr.dataset.invite);
   if (!invite) return;
   setGuestRsvp(invite, status, plus);
+});
+
+// Borrado completo de una invitación: elimina sus RSVP ligados y la invitación.
+// Compartido entre la sección Invitados y la de Invitaciones Personalizadas,
+// para que borrar en una se refleje en la otra.
+async function deleteInviteFully(invite) {
+  const { error: rsvpErr } = await supabase.from('rsvps').delete().eq('invite_id', invite.id);
+  if (rsvpErr) { console.error('[Admin] borrar rsvps de invite:', rsvpErr); toast('No se pudo eliminar'); return false; }
+  const { error } = await supabase.from('invites').delete().eq('id', invite.id);
+  if (error) { console.error('[Admin] borrar invite:', error); toast('No se pudo eliminar'); return false; }
+  return true;
+}
+
+// Eliminar desde la sección Invitados (botón por fila).
+el('guests-tbody')?.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-delete-guest]');
+  if (!btn) return;
+  const tr = btn.closest('tr');
+  if (!tr) return;
+
+  if (tr.dataset.anonRsvp) {
+    const id = tr.dataset.anonRsvp;
+    const r = anonCache.find((x) => x.id === id);
+    const name = r?.full_name || 'esta confirmación';
+    if (!confirm(`¿Eliminar la confirmación de ${name}? La acción no se puede deshacer.`)) return;
+    const { error } = await supabase.from('rsvps').delete().eq('id', id);
+    if (error) { console.error('[Admin] borrar rsvp anónimo:', error); toast('No se pudo eliminar'); return; }
+    toast('Confirmación eliminada');
+    loadGuests();
+    return;
+  }
+
+  const invite = guestsCache.find((g) => g.id === tr.dataset.invite);
+  if (!invite) return;
+  const name = guestName(invite);
+  if (!confirm(`¿Eliminar a ${name}? Se borrará su invitación personalizada y su respuesta de RSVP. La acción no se puede deshacer.`)) return;
+  if (await deleteInviteFully(invite)) {
+    toast('Invitado eliminado');
+    loadGuests();
+    loadInvites();
+  }
 });
 
 el('search-guests')?.addEventListener('input', renderGuests);
@@ -573,12 +640,12 @@ el('invites-tbody')?.addEventListener('click', async (e) => {
     const inv = invitesCache.find((i) => i.id === deleteBtn.dataset.deleteInvite);
     if (!inv) return;
     const name = `${inv.first_name} ${inv.last_name}`.trim();
-    if (!confirm(`¿Eliminar la invitación de ${name}? Sus respuestas de RSVP quedarán sin invitación asociada.`)) return;
-    const { error } = await supabase.from('invites').delete().eq('id', inv.id);
-    if (error) { toast('No se pudo eliminar'); console.error(error); return; }
-    toast('Invitación eliminada');
-    loadInvites();
-    loadGuests();
+    if (!confirm(`¿Eliminar la invitación de ${name}? Se borrará también su respuesta de RSVP. La acción no se puede deshacer.`)) return;
+    if (await deleteInviteFully(inv)) {
+      toast('Invitación eliminada');
+      loadInvites();
+      loadGuests();
+    }
   }
 });
 

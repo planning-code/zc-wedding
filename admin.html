@@ -103,6 +103,7 @@
           <div class="filter-tabs" id="guest-filters" role="group" aria-label="Filtrar por estado">
             <button class="filter-tab filter-tab--active" data-filter="all" type="button">Todos</button>
             <button class="filter-tab" data-filter="confirmed" type="button">Confirmados</button>
+            <button class="filter-tab" data-filter="confirmed-all" type="button">Confirmados (con y sin invitacion)</button>
             <button class="filter-tab" data-filter="pending" type="button">Pendientes</button>
             <button class="filter-tab" data-filter="declined" type="button">Declinaron</button>
             <button class="filter-tab" data-filter="anon" type="button">Sin invitacion</button>
@@ -124,6 +125,7 @@
               <th scope="col">Estado RSVP</th>
               <th scope="col">Mensaje</th>
               <th scope="col">Fecha RSVP</th>
+              <th scope="col" class="col-actions">Acciones</th>
             </tr>
           </thead>
           <tbody id="guests-tbody">
