@@ -16,7 +16,7 @@
   //    post-evento (count-up).
   // ─────────────────────────────────────────────
 
-  const TARGET = new Date('2026-08-16T16:00:00-06:00');
+  const TARGET = new Date('2026-08-16T16:30:00-06:00');
 
   const numEls = {
     days: document.querySelector('[data-unit="days"]'),
@@ -56,7 +56,7 @@
 
   // ─────────────────────────────────────────────
   // 2. ENLACE DE GOOGLE CALENDAR
-  //    16 ago 2026 16:00 -06:00  =  16 ago 2026 22:00 UTC
+  //    16 ago 2026 16:30 -06:00  =  16 ago 2026 22:30 UTC
   // ─────────────────────────────────────────────
 
   const gcalBtn = document.getElementById('btn-google-cal');
@@ -64,7 +64,7 @@
     const params = new URLSearchParams({
       action: 'TEMPLATE',
       text: 'Boda Karlita & Edgardo',
-      dates: '20260816T220000Z/20260817T050000Z',
+      dates: '20260816T223000Z/20260817T053000Z',
       details:
         'Hilton San Salvador. Confirma tu asistencia: https://zcwedding.com',
       location:

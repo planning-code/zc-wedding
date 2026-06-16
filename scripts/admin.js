@@ -549,7 +549,7 @@ function whatsappLink(inv) {
     ? ` Incluye ${inv.max_companions} acompañante${inv.max_companions > 1 ? 's' : ''}.` : '';
   const msg =
     `Hola ${name}, Karlita y Edgardo te invitan a celebrar su boda.\n` +
-    `Domingo 16 de agosto de 2026 · 4:00 PM · Hotel Hilton, San Salvador.${companions}\n\n` +
+    `Domingo 16 de agosto de 2026 · 4:30 PM · Hotel Hilton, San Salvador.${companions}\n\n` +
     `Abre tu invitación aquí:\n${inviteLink(inv.id)}`;
   const digits = (inv.phone || '').replace(/\D/g, '');
   return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
