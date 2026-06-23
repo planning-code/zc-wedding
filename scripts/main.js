@@ -68,7 +68,7 @@
       details:
         'Hilton San Salvador. Confirma tu asistencia: https://zcwedding.com',
       location:
-        'Hotel Hilton, 89 Av Norte y 11 Calle Poniente Colonia Escalon, San Salvador, 1101, El Salvador',
+        'Hotel Hilton, 89 Av Norte y 11 Calle Poniente Colonia Escalon, San Salvador, El Salvador',
     });
     gcalBtn.href = `https://calendar.google.com/calendar/render?${params}`;
   }
